@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MEGA Accounts Folder Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: {
+              900: '#131314',
+              850: '#1b1c1e',
+              800: '#202124',
+              750: '#282a2d',
+              700: '#303134',
+              600: '#3c4043',
+              500: '#5f6368',
+            },
+            gblue: '#8ab4f8',
+            gred: '#f28b82',
+            gyellow: '#fdd663',
+            ggreen: '#81c995',
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/mega-albums.css">
+</head>
+<body class="bg-surface-900 text-gray-200 min-h-screen flex flex-col font-sans select-none antialiased">
+
+  <header class="sticky top-0 z-30 bg-surface-850/95 backdrop-blur border-b border-surface-700 px-4 sm:px-6 py-3 shadow-md flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 via-rose-600 to-red-700 p-[2px] flex items-center justify-center shadow">
+        <div class="w-full h-full bg-surface-900 rounded-full flex items-center justify-center">
+          <span class="text-red-500 font-black text-sm">M</span>
+        </div>
+      </div>
+      <div>
+        <h1 class="text-base sm:text-lg font-semibold tracking-wide text-white flex items-center gap-2">
+          Accounts Folder Hub
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-surface-700 text-red-400 border border-surface-600">21 Accounts</span>
+        </h1>
+        <p class="text-xs text-gray-400">Multi-select folders, drag & drop between MEGA accounts</p>
+      </div>
+    </div>
+
+    <!-- Search box -->
+    <div class="flex-1 max-w-lg min-w-[240px]">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs sm:text-sm"></i>
+        <input 
+          id="search-input" 
+          type="text" 
+          placeholder="Search folder names..." 
+          class="w-full bg-surface-800 text-sm text-gray-100 pl-10 pr-9 py-2 rounded-xl border border-surface-700 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-400 transition-all"
+        />
+        <button id="clear-search-btn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick action buttons -->
+    <div class="flex items-center gap-2">
+      <button id="expand-all-btn" class="px-3 py-1.5 rounded-lg bg-surface-750 hover:bg-surface-700 text-xs font-medium border border-surface-600 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-chevron-down text-red-400"></i>
+        <span>Expand All</span>
+      </button>
+      <button id="collapse-all-btn" class="px-3 py-1.5 rounded-lg bg-surface-750 hover:bg-surface-700 text-xs font-medium border border-surface-600 transition flex items-center gap-1.5">
+        <i class="fa-solid fa-chevron-up text-red-400"></i>
+        <span>Collapse All</span>
+      </button>
+      <button id="reset-btn" class="px-3 py-1.5 rounded-lg bg-red-950/40 hover:bg-red-900/50 text-gred border border-red-800/60 text-xs font-medium transition flex items-center gap-1.5">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span>Reset Data</span>
+      </button>
+    </div>
+  </header>
+
+  <div id="selection-bar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-surface-800/95 backdrop-blur-md border border-red-500/40 shadow-2xl rounded-2xl px-5 py-3 flex items-center gap-4 text-sm animate-bounce-short">
+    <div class="flex items-center gap-2 text-white font-medium">
+      <span class="w-6 h-6 rounded-full bg-red-500 text-white font-bold text-xs flex items-center justify-center" id="selected-count-badge">0</span>
+      <span>selected</span>
+    </div>
+
+    <div class="h-5 w-px bg-surface-600"></div>
+
+    <div class="flex items-center gap-2">
+      <label class="text-xs text-gray-300 font-medium hidden sm:inline">Move to:</label>
+      <select id="move-target-select" class="bg-surface-750 border border-surface-600 text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-red-400">
+      </select>
+      <button id="move-selected-btn" class="bg-red-600 hover:bg-red-500 text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition shadow">
+        Move
+      </button>
+    </div>
+
+    <div class="h-5 w-px bg-surface-600"></div>
+
+    <button id="deselect-all-btn" class="text-gray-400 hover:text-white text-xs flex items-center gap-1">
+      <i class="fa-solid fa-xmark"></i>
+      <span>Clear</span>
+    </button>
+  </div>
+
+  <main class="flex-1 p-3 sm:p-5 w-full mx-auto">
+    <div class="mb-4 px-4 py-2.5 rounded-xl bg-surface-800/70 border border-surface-700/80 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-red-400"></i>
+        <span>Tips: Click anywhere on row to select. Drag highlighted cards directly into any account.</span>
+      </div>
+      <div id="stats-counter" class="text-gray-400 font-medium">0 folders total</div>
+    </div>
+
+    <div id="accounts-container" class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start w-full">
+    </div>
+  </main>
+
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-surface-750 text-white border border-surface-600 px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-medium">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-ggreen"></i>
+    <span id="toast-msg">Action performed</span>
+  </div>
+
+  <script src="../js/mega-albums.js"></script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import googleRoutes from "./google/google.service.js";
+import megaRoutes from "./mega/mega.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,8 +13,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-// Mount Google API
+// Mount APIs
 app.use("/api/google", googleRoutes);
+app.use("/api/mega", megaRoutes);
 
 // Static folders
 app.use("/auth", express.static(path.join(__dirname, "auth")));
