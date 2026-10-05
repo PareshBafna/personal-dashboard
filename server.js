@@ -4,8 +4,8 @@ dns.setDefaultResultOrder("ipv4first");
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import googleRoutes from "./google/google.service.js";
-import megaRoutes from "./mega/mega.service.js";
+import googleRoutes from "./pages/google/google-common/google.service.js";
+import megaRoutes from "./pages/mega/mega.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,20 +13,21 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-// Mount APIs
+// APIs
 app.use("/api/google", googleRoutes);
 app.use("/api/mega", megaRoutes);
 
-// Static folders
+// Static assets
 app.use("/auth", express.static(path.join(__dirname, "auth")));
-app.use("/google", express.static(path.join(__dirname, "google")));
-app.use("/mega", express.static(path.join(__dirname, "mega")));
-app.use("/notion", express.static(path.join(__dirname, "notion")));
 app.use("/shared", express.static(path.join(__dirname, "shared")));
+app.use("/pages", express.static(path.join(__dirname, "pages")));
+app.use("/google", express.static(path.join(__dirname, "pages", "google")));
+app.use("/mega", express.static(path.join(__dirname, "pages", "mega")));
+app.use("/notion", express.static(path.join(__dirname, "pages", "notion")));
 
 // Default redirect
 app.get("/", (req, res) => {
-  res.redirect("/google/html/google.html");
+  res.redirect("/google/google-account-details/google-account-details.html");
 });
 
 const PORT = 3000;

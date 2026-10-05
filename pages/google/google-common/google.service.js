@@ -1,6 +1,6 @@
 import express from "express";
 import https from "node:https";
-import { GOOGLE_CREDS } from "./credentials/google.creds.js";
+import { GOOGLE_CREDS } from "../google-credentials/google.credentials.js";
 
 const router = express.Router();
 
@@ -124,7 +124,7 @@ router.get("/callback", async (req, res) => {
       <body>
         <h2>Refresh Token:</h2>
         <textarea readonly>${data.refresh_token || "NO_REFRESH_TOKEN (Revoke dashboard access inside Google Account Security settings and re-auth)"}</textarea>
-        <p>Copy token into matching slot inside google/credentials/google.creds.js</p>
+        <p>Copy token into matching slot inside pages/google/google-credentials/google.credentials.js</p>
       </body>
       </html>
     `);
@@ -142,7 +142,6 @@ router.get("/storage", async (req, res) => {
         return { name: acc.name, email: acc.email, error: "No refresh token set" };
       }
 
-      // Refresh token to get access token
       const tokenData = await postHttps("oauth2.googleapis.com", "/token", {
         client_id: GOOGLE_CREDS.clientId,
         client_secret: GOOGLE_CREDS.clientSecret,
@@ -154,7 +153,6 @@ router.get("/storage", async (req, res) => {
         throw new Error(tokenData.error_description || "Token refresh failed");
       }
 
-      // Fetch drive quota
       const driveData = await getHttps(
         "https://www.googleapis.com/drive/v3/about?fields=storageQuota,user",
         tokenData.access_token
