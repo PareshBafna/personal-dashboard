@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import googleRoutes from "./pages/google/google-common/google.service.js";
 import megaRoutes from "./pages/mega/mega.service.js";
+import notionRoutes from "./pages/notion/notion-common/notion.service.js"; // <-- 1. IMPORT
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +17,7 @@ app.use(express.json());
 // APIs
 app.use("/api/google", googleRoutes);
 app.use("/api/mega", megaRoutes);
+app.use("/api/notion", notionRoutes); // <-- 2. MOUNT ROUTE
 
 // Static assets
 app.use("/auth", express.static(path.join(__dirname, "auth")));
