@@ -3,8 +3,6 @@ let activeDatabase = null;
 let searchQuery = "";
 let propSearchQuery = "";
 
-const LOCAL_STORAGE_KEY = "notion_db_cache_v2";
-
 const container = document.getElementById("notion-container");
 const searchInput = document.getElementById("searchInput");
 const clearSearchBtn = document.getElementById("clearSearchBtn");
@@ -82,22 +80,8 @@ function showToast(text) {
   window.__tId = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
-// 1. Instant cache loader
-function loadLocalCache() {
-  const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
-  if (cached) {
-    try {
-      allDatabases = JSON.parse(cached);
-      if (dbCountEl) dbCountEl.textContent = allDatabases.length;
-      render();
-      return true;
-    } catch (_) {}
-  }
-  return false;
-}
-
-// 2. Fetcher
-async function fetchDatabases(force = false) {
+// Live fetch every time (No local storage)
+async function fetchDatabases() {
   if (!container) return;
   if (refreshBtn) refreshBtn.classList.add("spinning");
 
@@ -105,7 +89,7 @@ async function fetchDatabases(force = false) {
     const res = await fetch("/api/notion/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ forceRefresh: force })
+      body: JSON.stringify({ forceRefresh: true })
     });
 
     if (!res.ok) {
@@ -115,19 +99,15 @@ async function fetchDatabases(force = false) {
     const data = await res.json();
     allDatabases = (data.results || []).filter(item => item.object === "database");
 
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allDatabases));
     if (dbCountEl) dbCountEl.textContent = allDatabases.length;
     render();
-    if (force) showToast("Databases synced!");
   } catch (err) {
     console.error("Fetch error:", err);
-    if (allDatabases.length === 0) {
-      container.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 24px; color: var(--color-red); border: 1px dashed rgba(244,63,94,0.4); border-radius: 18px; text-align: center;">
-          Failed to fetch Notion databases: ${err.message}
-        </div>
-      `;
-    }
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; padding: 24px; color: var(--color-red); border: 1px dashed rgba(244,63,94,0.4); border-radius: 18px; text-align: center;">
+        Failed to fetch Notion databases: ${err.message}
+      </div>
+    `;
   } finally {
     if (refreshBtn) refreshBtn.classList.remove("spinning");
   }
@@ -299,10 +279,9 @@ if (clearSearchBtn) {
 }
 
 if (refreshBtn) {
-  refreshBtn.addEventListener("click", () => fetchDatabases(true));
+  refreshBtn.addEventListener("click", () => fetchDatabases());
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const hasCached = loadLocalCache();
-  fetchDatabases(!hasCached);
+  fetchDatabases();
 });
