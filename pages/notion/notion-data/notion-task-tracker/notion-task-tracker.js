@@ -728,10 +728,10 @@ function attachAccordionSync() {
   dateAccordions.forEach(stage2 => {
     stage2.addEventListener("toggle", () => {
       if (stage2.open) {
-        const nestedDetails = stage2.querySelectorAll("details");
-        nestedDetails.forEach(nested => {
-          if (nested.dataset.col !== "done") {
-            nested.open = true;
+        const colDetails = stage2.querySelectorAll(".stage4-col-details");
+        colDetails.forEach(col => {
+          if (col.dataset.col !== "done") {
+            col.open = true;
           }
         });
       }
