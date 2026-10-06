@@ -50,6 +50,13 @@ const PRIORITY_RANK = {
   "lowest": 5
 };
 
+const NOTION_SVG_ICON = `
+  <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2" stroke="currentColor" fill="none"/>
+    <path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+`;
+
 function showToast(text, isError = false) {
   const toast = document.getElementById("toast");
   const msg = document.getElementById("toast-msg");
@@ -78,7 +85,6 @@ async function resolvePareshUser() {
 function parseTask(page) {
   const props = page.properties || {};
 
-  // 1. Title discovery
   let title = "Untitled Task";
   for (const [key, p] of Object.entries(props)) {
     if (p.type === "title") {
@@ -90,7 +96,6 @@ function parseTask(page) {
     }
   }
 
-  // 2. Status discovery
   let rawStatusName = "";
   let isDone = false;
 
@@ -122,7 +127,6 @@ function parseTask(page) {
 
   const displayStatus = rawStatusName || (isDone ? "Done" : "Not Started");
 
-  // 3. Priority discovery
   let priority = "Medium";
   for (const [key, p] of Object.entries(props)) {
     if (key.toLowerCase().includes("priority") || (p.type === "select" && ["critical", "high", "medium", "low", "lowest"].includes((p.select?.name || "").toLowerCase()))) {
@@ -132,7 +136,6 @@ function parseTask(page) {
     }
   }
 
-  // 4. Recurring flag discovery
   let isRecurring = false;
   for (const [key, p] of Object.entries(props)) {
     const k = key.toLowerCase();
@@ -150,7 +153,6 @@ function parseTask(page) {
     isRecurring = true;
   }
 
-  // 5. Formula Due Date w/o TZ extraction
   let formulaDateWithoutTZ = "";
   for (const [key, p] of Object.entries(props)) {
     const k = key.toLowerCase();
@@ -172,7 +174,6 @@ function parseTask(page) {
     isRecurring = true;
   }
 
-  // 6. Native Date & Time extraction
   let rawNativeDate = "";
   for (const [key, p] of Object.entries(props)) {
     if (p.type === "date" && p.date?.start) {
@@ -214,7 +215,6 @@ function parseTask(page) {
 
   const hasTime = !!(date && date.includes("T"));
 
-  // 7. Extra metadata
   for (const [key, p] of Object.entries(props)) {
     if (!discoveredPersonProp && (p.type === "people" || key.toLowerCase().includes("person") || key.toLowerCase().includes("assign"))) {
       discoveredPersonProp = key;
@@ -412,7 +412,6 @@ function formatTaskDate(task) {
   return str;
 }
 
-// Render individual task card with status action buttons below date/priority
 function renderTaskCard(task, showStatusBadge = false, columnType = "") {
   const statusClass = getStatusClass(task.status);
   const prioClass = getPriorityClass(task.priority);
@@ -427,37 +426,33 @@ function renderTaskCard(task, showStatusBadge = false, columnType = "") {
     checkIcon = `<i class="fa-solid fa-minus"></i>`;
   }
 
-  // Determine which action buttons to render based on column context
   let actionButtonsHtml = "";
   const currentContext = columnType || (task.isDone ? "done" : normStatus);
 
   if (currentContext === "in-progress") {
-    // Under In Progress, show Not Started button
     actionButtonsHtml = `
       <div class="item-status-actions">
         <button type="button" class="status-action-btn btn-to-todo" onclick="handleStatusTransition(event, '${task.id}', 'Not Started')">
-          <i class="fa-regular fa-circle-play"></i> Not Started
+          <i class="fa-regular fa-circle-play"></i> Mark Not Started
         </button>
       </div>
     `;
   } else if (currentContext === "todo") {
-    // Under Not Started, show In Progress button
     actionButtonsHtml = `
       <div class="item-status-actions">
         <button type="button" class="status-action-btn btn-to-prog" onclick="handleStatusTransition(event, '${task.id}', 'In Progress')">
-          <i class="fa-solid fa-circle-half-stroke"></i> In Progress
+          <i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress
         </button>
       </div>
     `;
   } else if (currentContext === "done") {
-    // Under Completed, show both Not Started and In Progress buttons
     actionButtonsHtml = `
       <div class="item-status-actions">
         <button type="button" class="status-action-btn btn-to-todo" onclick="handleStatusTransition(event, '${task.id}', 'Not Started')">
-          <i class="fa-regular fa-circle-play"></i> Not Started
+          <i class="fa-regular fa-circle-play"></i> Mark Not Started
         </button>
         <button type="button" class="status-action-btn btn-to-prog" onclick="handleStatusTransition(event, '${task.id}', 'In Progress')">
-          <i class="fa-solid fa-circle-half-stroke"></i> In Progress
+          <i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress
         </button>
       </div>
     `;
@@ -488,8 +483,8 @@ function renderTaskCard(task, showStatusBadge = false, columnType = "") {
 
       <div class="item-right">
         ${showStatusBadge ? `<span class="task-status-badge ${statusClass}">${task.status}</span>` : ""}
-        <a href="${task.url}" target="_blank" class="open-link-btn" title="Open in Notion ↗">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        <a href="${task.url}" target="_blank" class="open-link-btn" title="Open in Notion" aria-label="Open in Notion">
+          ${NOTION_SVG_ICON}
         </a>
       </div>
     </div>
@@ -676,7 +671,7 @@ function renderMasterView(taskList) {
             <div class="stage3-content">
               <div class="${columnClass}">
                 <!-- 1. IN PROGRESS -->
-                <details class="stage4-col-details" data-accord-key="${s3Key}-prog" data-col="in-progress" open>
+                <details class="stage4-col-details" data-accord-key="${s3Key}-prog" data-col="in-progress">
                   <summary class="stage4-col-summary col-prog">
                     <span>In Progress</span>
                     <span class="status-badge-prog badge-count">${inProgressList.length}</span>
@@ -688,7 +683,7 @@ function renderMasterView(taskList) {
                 </details>
 
                 <!-- 2. NOT STARTED -->
-                <details class="stage4-col-details" data-accord-key="${s3Key}-todo" data-col="todo" open>
+                <details class="stage4-col-details" data-accord-key="${s3Key}-todo" data-col="todo">
                   <summary class="stage4-col-summary col-todo">
                     <span>Not Started</span>
                     <span class="status-badge-todo badge-count">${notStartedList.length}</span>
@@ -700,7 +695,7 @@ function renderMasterView(taskList) {
                 </details>
 
                 ${!isPastDue ? `
-                  <!-- 3. COMPLETED (Collapsed by default) -->
+                  <!-- 3. COMPLETED -->
                   <details class="stage4-col-details" data-accord-key="${s3Key}-done" data-col="done">
                     <summary class="stage4-col-summary col-done">
                       <span>Completed</span>
@@ -747,10 +742,13 @@ function attachAccordionSync() {
 function render(preserveOpenState = false) {
   if (!container) return;
 
+  const prevScrollTop = container.scrollTop;
   const openKeys = new Set();
-  if (preserveOpenState) {
-    container.querySelectorAll("details[open]").forEach(d => {
-      if (d.dataset.accordKey) {
+  const hasExistingState = preserveOpenState && container.querySelectorAll("details").length > 0;
+
+  if (hasExistingState) {
+    container.querySelectorAll("details").forEach(d => {
+      if (d.dataset.accordKey && d.open) {
         openKeys.add(d.dataset.accordKey);
       }
     });
@@ -785,21 +783,32 @@ function render(preserveOpenState = false) {
     container.innerHTML = renderMasterView(filtered);
     attachAccordionSync();
 
-    if (preserveOpenState && openKeys.size > 0) {
+    if (hasExistingState) {
       container.querySelectorAll("details").forEach(d => {
-        if (d.dataset.accordKey && openKeys.has(d.dataset.accordKey)) {
-          d.open = true;
+        if (d.dataset.accordKey) {
+          d.open = openKeys.has(d.dataset.accordKey);
         }
       });
+    } else {
+      container.querySelectorAll(".stage4-col-details").forEach(d => {
+        if (d.dataset.col !== "done") d.open = true;
+      });
+    }
+
+    if (preserveOpenState) {
+      container.scrollTop = prevScrollTop;
     }
     return;
   }
 
   filtered.sort(multiLevelTaskComparator);
   container.innerHTML = filtered.map(t => renderTaskCard(t, true)).join("");
+
+  if (preserveOpenState) {
+    container.scrollTop = prevScrollTop;
+  }
 }
 
-// Stop propagation and handle checkbox click
 window.handleCheckboxClick = function(event, id) {
   if (event) {
     event.stopPropagation();
@@ -807,7 +816,6 @@ window.handleCheckboxClick = function(event, id) {
   toggleTask(id);
 };
 
-// Handle explicit status transition button clicks (In Progress <-> Not Started)
 window.handleStatusTransition = async function(event, id, targetStatusName) {
   if (event) {
     event.stopPropagation();
@@ -856,7 +864,6 @@ window.handleStatusTransition = async function(event, id, targetStatusName) {
   }
 };
 
-// Main Checkbox toggle logic: snapshots open accordions, updates state, and re-renders smoothly
 window.toggleTask = async function(id) {
   const task = allTasks.find(t => t.id === id);
   if (!task) return;
@@ -871,7 +878,6 @@ window.toggleTask = async function(id) {
   task.status = targetStatusName;
   updateTelemetry();
 
-  // Snapshot open state and re-render so card is guaranteed to reside in the right column
   render(true);
 
   if (targetState) {

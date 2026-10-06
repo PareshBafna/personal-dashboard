@@ -919,32 +919,37 @@ details[open] > summary .chevron-icon {
   color: var(--prio-lowest-text) !important;
 }
 
-/* ENLARGED NOTION LINK BUTTON WITH NOTION LOGO */
+/* BIGGER NOTION BUTTON */
 .open-link-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 9px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-muted);
-  text-decoration: none;
-  display: grid;
-  place-items: center;
-  transition: all 0.18s var(--ease);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a1a1aa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .open-link-btn:hover {
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.25);
   color: #ffffff;
-  transform: translateY(-1px);
+  transform: scale(1.06);
 }
 
 .notion-icon-svg {
-  width: 15px;
-  height: 15px;
-  fill: currentColor;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   display: block;
 }
 
