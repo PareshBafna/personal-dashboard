@@ -101,18 +101,18 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
 
         <!-- SECTION 2: TASK ACTIONS -->
         <div class="task-actions-section">
-          <!-- Row 1: Date Buttons -->
+          <!-- Row 1: Neutral Date Buttons -->
           <div class="item-date-shortcuts">
-            <button type="button" class="date-quick-btn" data-action="set-date-nodue" data-id="${task.id}">
+            <button type="button" class="date-quick-btn date-btn-nodue" data-action="set-date-nodue" data-id="${task.id}">
               <i class="fa-solid fa-calendar-xmark"></i> No Due
             </button>
-            <button type="button" class="date-quick-btn" data-action="set-date-today" data-id="${task.id}">
+            <button type="button" class="date-quick-btn date-btn-today" data-action="set-date-today" data-id="${task.id}">
               <i class="fa-regular fa-calendar-check"></i> Today
             </button>
-            <button type="button" class="date-quick-btn" data-action="set-date-tomorrow" data-id="${task.id}">
+            <button type="button" class="date-quick-btn date-btn-tomorrow" data-action="set-date-tomorrow" data-id="${task.id}">
               <i class="fa-regular fa-calendar-plus"></i> Tomorrow
             </button>
-            <button type="button" class="date-quick-btn" data-action="open-date-modal" data-id="${task.id}">
+            <button type="button" class="date-quick-btn date-btn-custom" data-action="open-date-modal" data-id="${task.id}">
               <i class="fa-regular fa-calendar-days"></i> Custom
             </button>
           </div>
