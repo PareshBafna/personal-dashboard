@@ -77,63 +77,66 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
 
   return `
     <div class="checklist-item ${cardPrioClass} ${task.isDone ? "is-done" : ""} ${isInProgress ? "is-in-progress" : ""}" data-id="${task.id}">
-      <div class="item-left">
-        <div class="item-text-wrap">
-          <!-- SECTION 1: TASK DATA -->
-          <div class="task-info-section">
-            <div class="task-info-top-row">
-              <span class="item-title">${task.title}</span>
-              <div class="item-right-inline">
-                ${showStatusBadge ? `<span class="task-status-badge">${task.status}</span>` : ""}
-                <a href="${task.url}" target="_blank" class="open-link-btn" title="Open Notion">
-                  <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/><path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2"/></svg>
-                </a>
-              </div>
-            </div>
-            <div class="item-submeta">
-              <span class="date-highlight-badge ${task.hasTime ? "has-time" : ""}">
-                <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
+      <div class="item-text-wrap">
+        <!-- SECTION 1: TASK DATA -->
+        <div class="task-info-section">
+          <div class="task-info-top-row">
+            <span class="item-title">${task.title}</span>
+            ${showStatusBadge ? `<span class="task-status-badge">${task.status}</span>` : ""}
+          </div>
+          <div class="item-submeta">
+            <span class="date-highlight-badge ${task.hasTime ? "has-time" : ""}">
+              <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
+            </span>
+            ${task.priority ? `
+              <span class="task-priority ${prioClass}">
+                <i class="fa-solid ${prioIcon}" style="margin-right: 4px; font-size: 0.65rem;"></i>${task.priority}
               </span>
-              ${task.priority ? `
-                <span class="task-priority ${prioClass}">
-                  <i class="fa-solid ${prioIcon}" style="margin-right: 4px; font-size: 0.65rem;"></i>${task.priority}
-                </span>
-              ` : ""}
-            </div>
+            ` : ""}
+          </div>
+        </div>
+
+        <!-- DIVIDER: TASK DATA VS ACTIONS -->
+        <div class="task-card-divider"></div>
+
+        <!-- SECTION 2: TASK ACTIONS -->
+        <div class="task-actions-section">
+          <!-- Row 1: Date Buttons -->
+          <div class="item-date-shortcuts">
+            <button type="button" class="date-quick-btn" data-action="set-date-nodue" data-id="${task.id}">
+              <i class="fa-solid fa-calendar-xmark"></i> No Due
+            </button>
+            <button type="button" class="date-quick-btn" data-action="set-date-today" data-id="${task.id}">
+              <i class="fa-regular fa-calendar-check"></i> Today
+            </button>
+            <button type="button" class="date-quick-btn" data-action="set-date-tomorrow" data-id="${task.id}">
+              <i class="fa-regular fa-calendar-plus"></i> Tomorrow
+            </button>
+            <button type="button" class="date-quick-btn" data-action="open-date-modal" data-id="${task.id}">
+              <i class="fa-regular fa-calendar-days"></i> Custom
+            </button>
           </div>
 
-          <!-- DIVIDER: TASK DATA VS ACTIONS -->
-          <div class="task-card-divider"></div>
+          <!-- Row 2: Priority Buttons -->
+          <div class="item-prio-shortcuts">
+            ${priorityBtnsHtml}
+          </div>
 
-          <!-- SECTION 2: TASK ACTIONS -->
-          <div class="task-actions-section">
-            <!-- Combined Row: Dates on left, Priorities on right -->
-            <div class="actions-combined-row">
-              <div class="item-date-shortcuts">
-                <button type="button" class="date-quick-btn btn-date-nodue" data-action="set-date-nodue" data-id="${task.id}">
-                  <i class="fa-solid fa-calendar-xmark"></i> No Due
-                </button>
-                <button type="button" class="date-quick-btn" data-action="set-date-today" data-id="${task.id}">
-                  <i class="fa-regular fa-calendar-check"></i> Today
-                </button>
-                <button type="button" class="date-quick-btn" data-action="set-date-tomorrow" data-id="${task.id}">
-                  <i class="fa-regular fa-calendar-plus"></i> Tomorrow
-                </button>
-                <button type="button" class="date-quick-btn" data-action="open-date-modal" data-id="${task.id}">
-                  <i class="fa-regular fa-calendar-days"></i> Custom
-                </button>
-              </div>
+          <!-- Row 3: Status / Delete actions -->
+          <div class="item-status-actions">
+            ${actionBtns}
+            <button type="button" class="status-action-btn btn-delete-action" data-action="delete" data-id="${task.id}"><i class="fa-solid fa-trash"></i></button>
+          </div>
 
-              <div class="item-prio-shortcuts">
-                ${priorityBtnsHtml}
-              </div>
-            </div>
-
-            <!-- Status Actions Row -->
-            <div class="item-status-actions">
-              ${actionBtns}
-              <button type="button" class="status-action-btn" data-action="delete" data-id="${task.id}" style="color:#f43f5e; background:rgba(244,63,94,0.12);"><i class="fa-solid fa-trash"></i></button>
-            </div>
+          <!-- Row 4: Notion Action Button -->
+          <div class="item-notion-action">
+            <a href="${task.url}" target="_blank" class="open-notion-btn">
+              <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/>
+                <path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2"/>
+              </svg>
+              <span>Open In Notion</span>
+            </a>
           </div>
         </div>
       </div>
