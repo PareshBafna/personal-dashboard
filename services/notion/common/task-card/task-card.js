@@ -74,6 +74,20 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
               </span>
             ` : ""}
           </div>
+
+          <!-- Date shortcut buttons above status actions -->
+          <div class="item-date-shortcuts">
+            <button type="button" class="date-quick-btn" data-action="set-date-today" data-id="${task.id}">
+              <i class="fa-regular fa-calendar-check"></i> Today
+            </button>
+            <button type="button" class="date-quick-btn" data-action="set-date-tomorrow" data-id="${task.id}">
+              <i class="fa-regular fa-calendar-plus"></i> Tomorrow
+            </button>
+            <button type="button" class="date-quick-btn" data-action="open-date-modal" data-id="${task.id}">
+              <i class="fa-regular fa-calendar-days"></i> Custom
+            </button>
+          </div>
+
           <div class="item-status-actions">
             ${actionBtns}
             <button type="button" class="status-action-btn" data-action="delete" data-id="${task.id}" style="color:#f43f5e; background:rgba(244,63,94,0.12);"><i class="fa-solid fa-trash"></i></button>
