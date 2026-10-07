@@ -118,10 +118,18 @@
   outline: none;
   font-family: inherit;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group textarea {
   resize: vertical;
+}
+
+/* Multiline textfield specifically for Task Name */
+.task-title-textarea {
+  min-height: 72px;
+  max-height: 150px;
+  line-height: 1.4;
 }
 
 .form-group select option {
@@ -141,6 +149,7 @@
   font-size: 0.84rem;
   font-weight: 600;
   height: 36px;
+  box-sizing: border-box;
 }
 
 .person-field-pill i {
