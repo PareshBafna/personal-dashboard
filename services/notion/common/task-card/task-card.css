@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-  padding: 10px 10px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 8px;
@@ -40,51 +40,10 @@
 
 .item-left {
   display: flex;
-  gap: 10px;
   align-items: flex-start;
   flex: 1 1 100%;
   width: 100%;
   min-width: 0;
-}
-
-.check-box {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  border-radius: 5px;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.03);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-top: 3px;
-  transition: all 0.15s;
-}
-
-.check-box i {
-  font-size: 0.65rem;
-  opacity: 0;
-  color: #fff;
-  transition: opacity 0.15s;
-}
-
-.checklist-item.is-done .check-box {
-  background: #10b981;
-  border-color: #10b981;
-}
-
-.checklist-item.is-done .check-box i {
-  opacity: 1;
-}
-
-.checklist-item.is-in-progress .check-box {
-  background: #f59e0b;
-  border-color: #f59e0b;
-}
-
-.checklist-item.is-in-progress .check-box i {
-  opacity: 1;
 }
 
 .item-text-wrap {

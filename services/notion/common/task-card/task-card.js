@@ -78,9 +78,6 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
   return `
     <div class="checklist-item ${cardPrioClass} ${task.isDone ? "is-done" : ""} ${isInProgress ? "is-in-progress" : ""}" data-id="${task.id}">
       <div class="item-left">
-        <div class="check-box" data-action="toggle" data-id="${task.id}">
-          <i class="fa-solid ${isInProgress ? "fa-minus" : "fa-check"}"></i>
-        </div>
         <div class="item-text-wrap">
           <!-- SECTION 1: TASK DATA -->
           <div class="task-info-section">
