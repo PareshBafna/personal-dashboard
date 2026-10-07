@@ -1,9 +1,9 @@
-import { fetchAllTasks, resolvePareshUser } from "/services/notion/common/api/api.client.js";
+import { fetchAllTasks, resolvePareshUser } from "../common/api/api.client.js";
 import { updateTelemetry } from "./telemetry/telemetry.js";
 import { initFilterToolbar, getFilterState } from "./filter-toolbar/filter-toolbar.js";
 import { renderMasterView, attachAccordionSync } from "./views/master-view/master-view.js";
 import { renderInboxView } from "./views/inbox-view/inbox-view.js";
-import { renderTaskCard, multiLevelTaskComparator } from "/services/notion/common/task-card/task-card.js";
+import { renderTaskCard, multiLevelTaskComparator } from "../common/task-card/task-card.js";
 import { initAddTask } from "./crud/add-task/add-task.js";
 import { updateTaskStatus } from "./crud/update-task/update-task.js";
 import { deleteTask } from "./crud/delete-task/delete-task.js";
@@ -28,18 +28,44 @@ function filterTasks(tasks) {
   });
 }
 
-function render() {
+function render(preserveState = false) {
+  if (!container) return;
+
+  const prevScrollTop = container.scrollTop;
+  const openKeys = new Set();
+  const hasExistingState = preserveState && container.querySelectorAll("details").length > 0;
+
+  if (hasExistingState) {
+    container.querySelectorAll("details").forEach(d => {
+      if (d.dataset.accordKey && d.open) {
+        openKeys.add(d.dataset.accordKey);
+      }
+    });
+  }
+
   const { status } = getFilterState();
   const filtered = filterTasks(allTasks);
 
   if (status === "master") {
     container.innerHTML = renderMasterView(filtered);
     attachAccordionSync(container);
+
+    if (hasExistingState) {
+      container.querySelectorAll("details").forEach(d => {
+        if (d.dataset.accordKey) {
+          d.open = openKeys.has(d.dataset.accordKey);
+        }
+      });
+    }
   } else if (status === "inbox") {
     container.innerHTML = renderInboxView(filtered);
   } else {
     filtered.sort(multiLevelTaskComparator);
     container.innerHTML = filtered.map(t => renderTaskCard(t, true)).join("");
+  }
+
+  if (preserveState) {
+    container.scrollTop = prevScrollTop;
   }
 }
 
@@ -52,14 +78,20 @@ container.addEventListener("click", (e) => {
 
   if (action === "toggle" && task) {
     const next = task.isDone ? "Not Started" : "Done";
-    updateTaskStatus(task, next, () => { updateTelemetry(allTasks); render(); });
+    updateTaskStatus(task, next, () => {
+      updateTelemetry(allTasks);
+      render(true);
+    });
   } else if (action === "status" && task) {
-    updateTaskStatus(task, btn.dataset.target, () => { updateTelemetry(allTasks); render(); });
+    updateTaskStatus(task, btn.dataset.target, () => {
+      updateTelemetry(allTasks);
+      render(true);
+    });
   } else if (action === "delete") {
     deleteTask(id, () => {
       allTasks = allTasks.filter(t => t.id !== id);
       updateTelemetry(allTasks);
-      render();
+      render(true);
     });
   }
 });
@@ -69,17 +101,17 @@ async function refresh() {
   if (refBtn) refBtn.classList.add("spinning");
   allTasks = await fetchAllTasks();
   updateTelemetry(allTasks);
-  render();
+  render(true);
   if (refBtn) refBtn.classList.remove("spinning");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadFragments();
-  initFilterToolbar(() => render());
+  initFilterToolbar(() => render(false));
   initAddTask((newTask) => {
     allTasks.unshift(newTask);
     updateTelemetry(allTasks);
-    render();
+    render(true);
   });
   document.getElementById("refreshBtn").addEventListener("click", refresh);
   await resolvePareshUser();
