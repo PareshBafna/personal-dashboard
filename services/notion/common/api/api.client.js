@@ -25,6 +25,19 @@ export async function resolvePareshUser() {
   }
 }
 
+function extractFormulaValue(p) {
+  if (!p) return "";
+  if (p.type === "formula" && p.formula) {
+    if (p.formula.type === "date" && p.formula.date?.start) return p.formula.date.start;
+    if (p.formula.type === "string" && p.formula.string) return p.formula.string;
+    if (p.formula.date?.start) return p.formula.date.start;
+    if (p.formula.string) return p.formula.string;
+  }
+  if (p.type === "date" && p.date?.start) return p.date.start;
+  if (p.type === "rollup" && p.rollup?.date?.start) return p.rollup.date.start;
+  return "";
+}
+
 export function parseTask(page) {
   const props = page.properties || {};
   let title = "Untitled Task";
@@ -74,31 +87,34 @@ export function parseTask(page) {
     }
   }
 
-  let isRecurring = false;
+  // 1. Check "Formula Due Date w/o TZ"
+  let formulaDateWithoutTZ = "";
   for (const [key, p] of Object.entries(props)) {
     const k = key.toLowerCase();
-    if (k.includes("recur") || k.includes("repeat") || k.includes("frequency") || k.includes("cycle")) {
-      schemaProps.recurring = key;
-      if ((p.type === "checkbox" && p.checkbox) || (p.type === "select" && p.select?.name) || (p.type === "multi_select" && p.multi_select?.length > 0) || (p.type === "formula" && (p.formula?.boolean || p.formula?.string))) {
-        isRecurring = true;
+    if (k.includes("formula due date") || k.includes("w/o tz") || k.includes("without tz")) {
+      const extracted = extractFormulaValue(p);
+      if (extracted && extracted.trim() !== "") {
+        formulaDateWithoutTZ = extracted.trim();
+        break;
       }
     }
   }
 
-  if (title.toLowerCase().includes("[recurring]") || title.includes("🔁") || title.includes("🔄") || title.toLowerCase().includes("recurring")) {
-    isRecurring = true;
-  }
-
-  let formulaDate = "";
+  // 2. Fallback check: recurrence checkbox / select if user has explicit recurrence column
+  let hasRecurProp = false;
   for (const [key, p] of Object.entries(props)) {
     const k = key.toLowerCase();
-    if (k.includes("formula due date") || k.includes("due date w/o tz") || k.includes("without tz")) {
-      formulaDate = p.formula?.date?.start || p.formula?.string || (p.type === "date" ? p.date?.start : "") || "";
-      if (formulaDate) break;
+    if (k.includes("recur") || k.includes("repeat") || k.includes("frequency")) {
+      if (p.type === "checkbox" && p.checkbox) hasRecurProp = true;
+      if (p.type === "select" && p.select?.name && !["none", "never", "no"].includes(p.select.name.toLowerCase())) hasRecurProp = true;
+      if (p.type === "formula" && p.formula?.boolean) hasRecurProp = true;
     }
   }
-  if (formulaDate) isRecurring = true;
 
+  // Recurring IF formula date exists and not empty, OR explicit recur flag set
+  const isRecurring = !!((formulaDateWithoutTZ && formulaDateWithoutTZ !== "") || hasRecurProp);
+
+  // 3. Native Due Date
   let rawNativeDate = "";
   for (const [key, p] of Object.entries(props)) {
     if (p.type === "date" && p.date?.start) {
@@ -108,24 +124,23 @@ export function parseTask(page) {
     }
   }
 
+  // 4. Combine date
   let date = "";
-  if (isRecurring && formulaDate) {
-    if (!formulaDate.includes("T") && rawNativeDate && rawNativeDate.includes("T")) {
-      date = `${formulaDate.slice(0, 10)}T${rawNativeDate.split("T")[1]}`;
+  if (isRecurring && formulaDateWithoutTZ) {
+    if (!formulaDateWithoutTZ.includes("T") && rawNativeDate && rawNativeDate.includes("T")) {
+      const timePart = rawNativeDate.split("T")[1];
+      const formulaDatePart = formulaDateWithoutTZ.slice(0, 10);
+      date = `${formulaDatePart}T${timePart}`;
     } else {
-      date = formulaDate;
+      date = formulaDateWithoutTZ;
     }
   } else if (rawNativeDate) {
     date = rawNativeDate;
   }
 
-  if (!date) {
-    for (const [key, p] of Object.entries(props)) {
-      if (p.type === "formula" && p.formula?.date?.start) { date = p.formula.date.start; break; }
-      if (p.type === "rollup" && p.rollup?.date?.start) { date = p.rollup.date.start; break; }
-    }
-  }
-  if (!date && formulaDate) date = formulaDate;
+  if (!date && formulaDateWithoutTZ) date = formulaDateWithoutTZ;
+
+  const hasTime = !!(date && date.includes("T"));
 
   for (const [key, p] of Object.entries(props)) {
     if (!schemaProps.person && (p.type === "people" || key.toLowerCase().includes("person"))) schemaProps.person = key;
@@ -141,8 +156,8 @@ export function parseTask(page) {
     isDone,
     priority,
     date: date ? String(date).trim() : "",
-    formulaDate: formulaDate ? String(formulaDate).trim() : "",
-    hasTime: !!(date && date.includes("T")),
+    formulaDate: formulaDateWithoutTZ ? String(formulaDateWithoutTZ).trim() : "",
+    hasTime,
     isRecurring,
     statusPropName: schemaProps.status,
     lastEdited: page.last_edited_time
@@ -172,7 +187,11 @@ export async function fetchAllTasks() {
     const res = await fetch("/api/notion/query-database", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ databaseId: TASK_DB_ID, page_size: 100, ...(currentCursor ? { start_cursor: currentCursor } : {}) })
+      body: JSON.stringify({
+        databaseId: TASK_DB_ID,
+        page_size: 100,
+        ...(currentCursor ? { start_cursor: currentCursor } : {})
+      })
     });
     if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
