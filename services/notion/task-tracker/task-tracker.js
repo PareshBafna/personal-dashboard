@@ -1,7 +1,7 @@
 import { fetchAllTasks, resolvePareshUser, schemaProps } from "../common/api/api.client.js";
 import { updateTelemetry } from "./telemetry/telemetry.js";
 import { initFilterToolbar, getFilterState } from "./filter-toolbar/filter-toolbar.js";
-import { renderMasterView } from "./views/master-view/master-view.js";
+import { renderMasterView, attachDateAccordionSync } from "./views/master-view/master-view.js";
 import { renderInboxView } from "./views/inbox-view/inbox-view.js";
 import { renderTaskCard, multiLevelTaskComparator } from "../common/task-card/task-card.js";
 import { initAddTask } from "./crud/add-task/add-task.js";
@@ -125,6 +125,7 @@ function renderFull() {
 
   if (status === "master") {
     container.innerHTML = renderMasterView(filtered);
+    attachDateAccordionSync(container);
     return;
   }
   if (status === "inbox") {
@@ -326,6 +327,7 @@ async function syncData() {
 
     if (status === "master") {
       container.innerHTML = renderMasterView(filtered);
+      attachDateAccordionSync(container);
 
       if (hadExistingDOM) {
         container.querySelectorAll("details").forEach(d => {

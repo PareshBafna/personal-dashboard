@@ -53,7 +53,6 @@ function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentD
   notStartedList.sort(multiLevelTaskComparator);
   doneList.sort(multiLevelTaskComparator);
 
-  // Default on page load: Due Today expands In Progress & Not Started; Completed is ALWAYS collapsed
   const openColAttr = isParentDueToday ? "open" : "";
 
   return `
@@ -300,4 +299,33 @@ export function renderMasterView(taskList) {
   }
 
   return htmlFragments.join("");
+}
+
+export function attachDateAccordionSync(container) {
+  if (!container) return;
+  const dateAccordions = container.querySelectorAll(".stage2-group");
+  dateAccordions.forEach(stage2 => {
+    stage2.addEventListener("toggle", (e) => {
+      // Trigger ONLY when user manually clicks to open the date accordion
+      if (!e.isTrusted) return;
+      if (stage2.open) {
+        // 1. Expand all Stage 3 task type accordions (Recurring, Due Date & Time, Due Date)
+        stage2.querySelectorAll(".stage3-group").forEach(s3 => {
+          s3.open = true;
+        });
+
+        // 2. Expand all Priority accordions
+        stage2.querySelectorAll(".stage-prio-group").forEach(sp => {
+          sp.open = true;
+        });
+
+        // 3. Expand Not Started and In Progress status columns (leave Completed closed)
+        stage2.querySelectorAll(".stage4-col-details").forEach(col => {
+          if (col.dataset.col !== "done") {
+            col.open = true;
+          }
+        });
+      }
+    });
+  });
 }
