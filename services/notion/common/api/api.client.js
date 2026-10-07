@@ -60,7 +60,9 @@ export function parseTask(page) {
       rawStatusName = p.status?.name || "";
       break;
     }
-    if (p.type === "checkbox" && p.checkbox) isDone = true;
+    if (p.type === "checkbox") {
+      if (p.checkbox) isDone = true;
+    }
   }
 
   if (!rawStatusName) {
@@ -87,7 +89,6 @@ export function parseTask(page) {
     }
   }
 
-  // 1. Check "Formula Due Date w/o TZ"
   let formulaDateWithoutTZ = "";
   for (const [key, p] of Object.entries(props)) {
     const k = key.toLowerCase();
@@ -100,7 +101,6 @@ export function parseTask(page) {
     }
   }
 
-  // 2. Fallback check: recurrence checkbox / select if user has explicit recurrence column
   let hasRecurProp = false;
   for (const [key, p] of Object.entries(props)) {
     const k = key.toLowerCase();
@@ -111,10 +111,8 @@ export function parseTask(page) {
     }
   }
 
-  // Recurring IF formula date exists and not empty, OR explicit recur flag set
   const isRecurring = !!((formulaDateWithoutTZ && formulaDateWithoutTZ !== "") || hasRecurProp);
 
-  // 3. Native Due Date
   let rawNativeDate = "";
   for (const [key, p] of Object.entries(props)) {
     if (p.type === "date" && p.date?.start) {
@@ -124,7 +122,6 @@ export function parseTask(page) {
     }
   }
 
-  // 4. Combine date
   let date = "";
   if (isRecurring && formulaDateWithoutTZ) {
     if (!formulaDateWithoutTZ.includes("T") && rawNativeDate && rawNativeDate.includes("T")) {
@@ -169,7 +166,14 @@ export function filterTasksRule(taskList) {
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   return taskList.filter(task => {
+    // 1. Drop if no due date (both native and formula date empty)
+    const hasValidDueDate = !!((task.date && task.date.trim()) || (task.formulaDate && task.formulaDate.trim()));
+    if (!hasValidDueDate) return false;
+
+    // 2. Keep incomplete tasks
     if (!task.isDone) return true;
+
+    // 3. For completed tasks: only keep completed today or later
     if (task.date && task.date.length >= 10) return task.date.slice(0, 10) >= todayStr;
     if (task.lastEdited && task.lastEdited.length >= 10) return task.lastEdited.slice(0, 10) >= todayStr;
     return false;
@@ -180,26 +184,60 @@ export async function fetchAllTasks() {
   const taskMap = new Map();
   let currentCursor = null;
   let hasMore = true;
-  let pages = 0;
 
-  while (hasMore && pages < 4) {
-    pages++;
-    const res = await fetch("/api/notion/query-database", {
+  const now = new Date();
+  const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+  // Notion API filter: Incomplete OR edited today
+  const apiFilter = {
+    or: [
+      {
+        property: schemaProps.status || "Status",
+        status: {
+          does_not_equal: "Done"
+        }
+      },
+      {
+        timestamp: "last_edited_time",
+        last_edited_time: {
+          on_or_after: todayISO
+        }
+      }
+    ]
+  };
+
+  while (hasMore) {
+    const payload = {
+      databaseId: TASK_DB_ID,
+      page_size: 100,
+      filter: apiFilter,
+      ...(currentCursor ? { start_cursor: currentCursor } : {})
+    };
+
+    let res = await fetch("/api/notion/query-database", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        databaseId: TASK_DB_ID,
-        page_size: 100,
-        ...(currentCursor ? { start_cursor: currentCursor } : {})
-      })
+      body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error(await res.text());
+
+    if (!res.ok) {
+      delete payload.filter;
+      res = await fetch("/api/notion/query-database", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(await res.text());
+    }
+
     const data = await res.json();
     (data.results || []).forEach(p => {
       if (!taskMap.has(p.id)) taskMap.set(p.id, parseTask(p));
     });
-    hasMore = data.has_more && data.next_cursor;
-    currentCursor = data.next_cursor;
+
+    hasMore = !!(data.has_more && data.next_cursor);
+    currentCursor = data.next_cursor || null;
   }
+
   return filterTasksRule(Array.from(taskMap.values()));
 }
