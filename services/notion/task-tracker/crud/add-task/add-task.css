@@ -1,0 +1,224 @@
+.fab-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(145deg, #3f3f46 0%, #1f2023 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 11px 18px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+
+.fab-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(145deg, #52525b 0%, #27282c 100%);
+  box-shadow: 0 14px 30px -4px rgba(0, 0, 0, 0.85);
+}
+
+.fab-btn i {
+  font-size: 0.95rem;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  z-index: 100;
+  display: none;
+  place-items: center;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.modal-backdrop.show {
+  display: grid;
+}
+
+.modal-card {
+  background: linear-gradient(160deg, rgba(28, 30, 34, 0.98) 0%, rgba(18, 19, 21, 0.99) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalIn 0.2s var(--ease) both;
+  margin: auto;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-title-wrap h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.modal-form {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.form-group label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.84rem;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-group select option {
+  background: #18191b;
+  color: #fff;
+}
+
+.person-field-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  height: 36px;
+}
+
+.person-field-pill i {
+  color: #a1a1aa;
+}
+
+.date-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: none !important;
+}
+
+.time-toggle-label input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  accent-color: #3f3f46;
+}
+
+.date-inputs-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.time-input.hidden {
+  display: none;
+}
+
+.date-shortcuts {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.date-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  color: var(--text-dim);
+  padding: 6px 4px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+.date-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.single-row-footer {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between !important;
+  gap: 10px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.single-row-footer .modal-btn {
+  flex: 1;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 10px;
+}

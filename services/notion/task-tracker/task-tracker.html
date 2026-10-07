@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>Notion Task Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./task-tracker.css">
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <div class="tracker-wrapper">
+    <header class="tracker-header">
+      <div class="brand">
+        <a href="../dashboard/dashboard.html" class="back-link" title="Back to Dashboard">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div class="brand-icon">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div>
+          <h1>Task Tracker</h1>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="refreshBtn" class="action-btn secondary-btn" title="Sync live tasks">
+          <i class="fa-solid fa-rotate refresh-icon"></i>
+          <span>Sync</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="telemetrySlot"></div>
+    <div id="toolbarSlot"></div>
+
+    <main id="tasksContainer" class="checklist-container"></main>
+  </div>
+
+  <div id="addTaskSlot"></div>
+
+  <div id="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-msg">Updated</span>
+  </div>
+
+  <script type="module" src="./task-tracker.js"></script>
+</body>
+</html>
