@@ -22,6 +22,83 @@ function getStage3Type(task) {
   return "Due Date";
 }
 
+const PRIORITY_ORDER = ["Critical", "High", "Medium", "Low", "Lowest"];
+
+function getJiraPriorityIcon(prio) {
+  const p = (prio || "").toLowerCase();
+  if (p === "critical") return "fa-angles-up";
+  if (p === "high") return "fa-chevron-up";
+  if (p === "medium") return "fa-equals";
+  if (p === "low") return "fa-chevron-down";
+  return "fa-angles-down";
+}
+
+function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue) {
+  const inProgressList = [];
+  const notStartedList = [];
+  const doneList = [];
+
+  for (const item of tasks) {
+    const norm = (item.status || "").toLowerCase();
+    if (item.isDone || norm === "done" || norm.includes("complete")) {
+      doneList.push(item);
+    } else if (norm.includes("progress")) {
+      inProgressList.push(item);
+    } else {
+      notStartedList.push(item);
+    }
+  }
+
+  inProgressList.sort(multiLevelTaskComparator);
+  notStartedList.sort(multiLevelTaskComparator);
+  doneList.sort(multiLevelTaskComparator);
+
+  return `
+    <div class="${columnClass}">
+      <!-- 1. IN PROGRESS -->
+      <details class="stage4-col-details" data-accord-key="${keyPrefix}-prog" data-col="in-progress" open>
+        <summary class="stage4-col-summary col-prog">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+          <span>In Progress</span>
+          <span class="status-badge-prog badge-count">${inProgressList.length}</span>
+          <i class="fa-solid fa-chevron-down chevron-icon"></i>
+        </summary>
+        <div class="stage4-col-tasks">
+          ${inProgressList.length > 0 ? inProgressList.map(t => renderTaskCard(t, false, "in-progress")).join("") : `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`}
+        </div>
+      </details>
+
+      <!-- 2. NOT STARTED -->
+      <details class="stage4-col-details" data-accord-key="${keyPrefix}-todo" data-col="todo" open>
+        <summary class="stage4-col-summary col-todo">
+          <i class="fa-regular fa-circle-play"></i>
+          <span>Not Started</span>
+          <span class="status-badge-todo badge-count">${notStartedList.length}</span>
+          <i class="fa-solid fa-chevron-down chevron-icon"></i>
+        </summary>
+        <div class="stage4-col-tasks">
+          ${notStartedList.length > 0 ? notStartedList.map(t => renderTaskCard(t, false, "todo")).join("") : `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`}
+        </div>
+      </details>
+
+      ${!isPastDue ? `
+        <!-- 3. COMPLETED -->
+        <details class="stage4-col-details" data-accord-key="${keyPrefix}-done" data-col="done">
+          <summary class="stage4-col-summary col-done">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Completed</span>
+            <span class="status-badge-done badge-count">${doneList.length}</span>
+            <i class="fa-solid fa-chevron-down chevron-icon"></i>
+          </summary>
+          <div class="stage4-col-tasks">
+            ${doneList.length > 0 ? doneList.map(t => renderTaskCard(t, false, "done")).join("") : `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`}
+          </div>
+        </details>
+      ` : ""}
+    </div>
+  `;
+}
+
 export function renderMasterView(taskList) {
   const datedTasks = taskList.filter(t => (t.date || t.formulaDate || "").trim());
   if (!datedTasks.length) {
@@ -143,30 +220,61 @@ export function renderMasterView(taskList) {
           s3ThemeClass = "stage3-theme-datetime";
         }
 
-        const inProgressList = [];
-        const notStartedList = [];
-        const doneList = [];
-
-        for (let k = 0; k < s3Tasks.length; k++) {
-          const item = s3Tasks[k];
-          const norm = (item.status || "").toLowerCase();
-          if (item.isDone || norm === "done" || norm.includes("complete")) {
-            doneList.push(item);
-          } else if (norm.includes("progress")) {
-            inProgressList.push(item);
-          } else {
-            notStartedList.push(item);
-          }
-        }
-
-        inProgressList.sort(multiLevelTaskComparator);
-        notStartedList.sort(multiLevelTaskComparator);
-        doneList.sort(multiLevelTaskComparator);
-
         const isOpenS3 = s1Name === "Due Today" ? "open" : "";
         const isPastDue = s1Name === "Past Due";
         const columnClass = isPastDue ? "stage4-columns-past-due" : "stage4-columns";
         const s3Key = `s3-${s1Name}-${dKey}-${s3Name.replace(/\s+/g, "_")}`;
+
+        let innerContentHtml = "";
+
+        // Skip Priority for Recurring Tasks AND Due Date & Time
+        if (s3Name === "Recurring Tasks" || s3Name === "Due Date & Time") {
+          innerContentHtml = renderStatusColumns(s3Tasks, columnClass, s3Key, isPastDue);
+        } else {
+          // Group tasks by Priority for Due Date
+          const prioMap = new Map();
+          for (const p of PRIORITY_ORDER) {
+            prioMap.set(p, []);
+          }
+
+          for (const item of s3Tasks) {
+            const rawPrio = (item.priority || "Medium").toLowerCase();
+            const matchKey = PRIORITY_ORDER.find(p => p.toLowerCase() === rawPrio) || "Medium";
+            prioMap.get(matchKey).push(item);
+          }
+
+          const prioHtmlFragments = [];
+
+          for (const pName of PRIORITY_ORDER) {
+            const pTasks = prioMap.get(pName);
+            if (!pTasks || pTasks.length === 0) continue;
+
+            const pKey = `${s3Key}-prio-${pName.toLowerCase()}`;
+            const prioThemeClass = `prio-grp-${pName.toLowerCase()}`;
+            const prioColumnsHtml = renderStatusColumns(pTasks, columnClass, pKey, isPastDue);
+            const jiraIcon = getJiraPriorityIcon(pName);
+
+            prioHtmlFragments.push(`
+              <details class="stage-prio-group ${prioThemeClass}" data-accord-key="${pKey}" ${isOpenS3}>
+                <summary class="stage-prio-summary">
+                  <i class="fa-solid ${jiraIcon} jira-prio-icon"></i>
+                  <span>${pName}</span>
+                  <span class="stage-prio-badge">${pTasks.length}</span>
+                  <i class="fa-solid fa-chevron-down chevron-icon"></i>
+                </summary>
+                <div class="stage-prio-content">
+                  ${prioColumnsHtml}
+                </div>
+              </details>
+            `);
+          }
+
+          innerContentHtml = `
+            <div class="priority-groups-container">
+              ${prioHtmlFragments.join("")}
+            </div>
+          `;
+        }
 
         htmlFragments.push(`
           <details class="stage3-group ${s3ThemeClass}" data-accord-key="${s3Key}" ${isOpenS3}>
@@ -177,45 +285,7 @@ export function renderMasterView(taskList) {
               <i class="fa-solid fa-chevron-down chevron-icon"></i>
             </summary>
             <div class="stage3-content">
-              <div class="${columnClass}">
-                <!-- 1. IN PROGRESS -->
-                <details class="stage4-col-details" data-accord-key="${s3Key}-prog" data-col="in-progress" open>
-                  <summary class="stage4-col-summary col-prog">
-                    <span>In Progress</span>
-                    <span class="status-badge-prog badge-count">${inProgressList.length}</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon"></i>
-                  </summary>
-                  <div class="stage4-col-tasks">
-                    ${inProgressList.length > 0 ? inProgressList.map(t => renderTaskCard(t, false, "in-progress")).join("") : `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`}
-                  </div>
-                </details>
-
-                <!-- 2. NOT STARTED -->
-                <details class="stage4-col-details" data-accord-key="${s3Key}-todo" data-col="todo" open>
-                  <summary class="stage4-col-summary col-todo">
-                    <span>Not Started</span>
-                    <span class="status-badge-todo badge-count">${notStartedList.length}</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon"></i>
-                  </summary>
-                  <div class="stage4-col-tasks">
-                    ${notStartedList.length > 0 ? notStartedList.map(t => renderTaskCard(t, false, "todo")).join("") : `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`}
-                  </div>
-                </details>
-
-                ${!isPastDue ? `
-                  <!-- 3. COMPLETED -->
-                  <details class="stage4-col-details" data-accord-key="${s3Key}-done" data-col="done">
-                    <summary class="stage4-col-summary col-done">
-                      <span>Completed</span>
-                      <span class="status-badge-done badge-count">${doneList.length}</span>
-                      <i class="fa-solid fa-chevron-down chevron-icon"></i>
-                    </summary>
-                    <div class="stage4-col-tasks">
-                      ${doneList.length > 0 ? doneList.map(t => renderTaskCard(t, false, "done")).join("") : `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`}
-                    </div>
-                  </details>
-                ` : ""}
-              </div>
+              ${innerContentHtml}
             </div>
           </details>
         `);

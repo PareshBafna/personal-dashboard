@@ -1,5 +1,14 @@
 const PRIORITY_RANK = { critical: 1, high: 2, medium: 3, low: 4, lowest: 5 };
 
+function getJiraPriorityIcon(prio) {
+  const p = (prio || "").toLowerCase();
+  if (p === "critical") return "fa-angles-up";
+  if (p === "high") return "fa-chevron-up";
+  if (p === "medium") return "fa-equals";
+  if (p === "low") return "fa-chevron-down";
+  return "fa-angles-down";
+}
+
 export function formatTaskDate(task) {
   const str = task.date || task.formulaDate || "";
   if (!str.trim()) return "No Due Date";
@@ -45,6 +54,8 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
     `;
   }
 
+  const prioIcon = getJiraPriorityIcon(task.priority);
+
   return `
     <div class="checklist-item ${cardPrioClass} ${task.isDone ? "is-done" : ""} ${isInProgress ? "is-in-progress" : ""}" data-id="${task.id}">
       <div class="item-left">
@@ -57,7 +68,11 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
             <span class="date-highlight-badge ${task.hasTime ? "has-time" : ""}">
               <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
             </span>
-            ${task.priority ? `<span class="task-priority ${prioClass}">${task.priority}</span>` : ""}
+            ${task.priority ? `
+              <span class="task-priority ${prioClass}">
+                <i class="fa-solid ${prioIcon}" style="margin-right: 4px; font-size: 0.65rem;"></i>${task.priority}
+              </span>
+            ` : ""}
           </div>
           <div class="item-status-actions">
             ${actionBtns}
