@@ -186,90 +186,37 @@ details[open] > summary .chevron-icon {
   margin-top: 6px;
 }
 
-/* STAGE 3.5: PRIORITY GROUP (COLUMN-WISE / GRID) */
+/* STAGE 3.5: PRIORITY GROUPS */
 .priority-groups-container {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 100%;
   margin-top: 6px;
 }
 
 .stage-prio-group {
   border-radius: 8px;
   padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.stage-prio-group.prio-grp-critical {
-  border-color: rgba(140, 59, 59, 0.35);
-  background: rgba(140, 59, 59, 0.04);
-}
-.stage-prio-group.prio-grp-critical .stage-prio-summary { color: #fca5a5 !important; }
-.stage-prio-group.prio-grp-critical .stage-prio-badge {
-  background: rgba(140, 59, 59, 0.2);
-  color: #ffd0d0;
-  border: 1px solid rgba(140, 59, 59, 0.5);
-}
-
-.stage-prio-group.prio-grp-high {
-  border-color: rgba(97, 77, 123, 0.35);
-  background: rgba(97, 77, 123, 0.04);
-}
-.stage-prio-group.prio-grp-high .stage-prio-summary { color: #d8b4fe !important; }
-.stage-prio-group.prio-grp-high .stage-prio-badge {
-  background: rgba(97, 77, 123, 0.2);
-  color: #e2d9f3;
-  border: 1px solid rgba(97, 77, 123, 0.5);
-}
-
-.stage-prio-group.prio-grp-medium {
-  border-color: rgba(138, 100, 35, 0.35);
-  background: rgba(138, 100, 35, 0.04);
-}
-.stage-prio-group.prio-grp-medium .stage-prio-summary { color: #fde047 !important; }
-.stage-prio-group.prio-grp-medium .stage-prio-badge {
-  background: rgba(138, 100, 35, 0.2);
-  color: #fae8be;
-  border: 1px solid rgba(138, 100, 35, 0.5);
-}
-
-.stage-prio-group.prio-grp-low {
-  border-color: rgba(53, 98, 71, 0.35);
-  background: rgba(53, 98, 71, 0.04);
-}
-.stage-prio-group.prio-grp-low .stage-prio-summary { color: #86efac !important; }
-.stage-prio-group.prio-grp-low .stage-prio-badge {
-  background: rgba(53, 98, 71, 0.2);
-  color: #c2eed5;
-  border: 1px solid rgba(53, 98, 71, 0.5);
-}
-
-.stage-prio-group.prio-grp-lowest {
-  border-color: rgba(90, 92, 96, 0.35);
-  background: rgba(90, 92, 96, 0.04);
-}
-.stage-prio-group.prio-grp-lowest .stage-prio-summary { color: #d4d4d8 !important; }
-.stage-prio-group.prio-grp-lowest .stage-prio-badge {
-  background: rgba(90, 92, 96, 0.2);
-  color: #d4d4d8;
-  border: 1px solid rgba(90, 92, 96, 0.5);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .stage-prio-summary {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 3px 4px;
+  gap: 7px;
+  padding: 3px 6px;
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
+.jira-prio-icon {
+  font-size: 0.72rem;
+}
+
 .stage-prio-badge {
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.62rem;
@@ -277,6 +224,62 @@ details[open] > summary .chevron-icon {
 
 .stage-prio-content {
   margin-top: 6px;
+}
+
+/* Priority Themes */
+.prio-grp-critical {
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+.prio-grp-critical .stage-prio-summary { color: #f87171 !important; }
+.prio-grp-critical .stage-prio-badge {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid #f87171;
+}
+
+.prio-grp-high {
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+.prio-grp-high .stage-prio-summary { color: #fb923c !important; }
+.prio-grp-high .stage-prio-badge {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+  border: 1px solid #fb923c;
+}
+
+.prio-grp-medium {
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  background: linear-gradient(180deg, rgba(234, 179, 8, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+.prio-grp-medium .stage-prio-summary { color: #facc15 !important; }
+.prio-grp-medium .stage-prio-badge {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid #facc15;
+}
+
+.prio-grp-low {
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+.prio-grp-low .stage-prio-summary { color: #4ade80 !important; }
+.prio-grp-low .stage-prio-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #4ade80;
+  border: 1px solid #4ade80;
+}
+
+.prio-grp-lowest {
+  border: 1px solid rgba(113, 113, 122, 0.25);
+  background: linear-gradient(180deg, rgba(113, 113, 122, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
+}
+.prio-grp-lowest .stage-prio-summary { color: #a1a1aa !important; }
+.prio-grp-lowest .stage-prio-badge {
+  background: rgba(113, 113, 122, 0.15);
+  color: #a1a1aa;
+  border: 1px solid #a1a1aa;
 }
 
 /* STAGE 4 */

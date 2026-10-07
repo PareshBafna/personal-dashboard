@@ -166,6 +166,34 @@ async function updateTaskDueDate(task, newDateString) {
   }
 }
 
+// POST endpoint to update task priority
+async function updateTaskPriority(task, newPriority) {
+  try {
+    const propName = schemaProps.priority || "Priority";
+    const body = {
+      pageId: task.id,
+      properties: {
+        [propName]: {
+          select: { name: newPriority }
+        }
+      }
+    };
+
+    const res = await fetch("/api/notion/update-page", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error(await res.text());
+
+    task.priority = newPriority;
+    await syncData();
+  } catch (err) {
+    console.error("Failed to update task priority:", err);
+  }
+}
+
 function setDateTodayOrTomorrow(task, isTomorrow = false) {
   const now = new Date();
   if (isTomorrow) now.setDate(now.getDate() + 1);
@@ -300,6 +328,11 @@ container.addEventListener("click", (e) => {
     setDateTodayOrTomorrow(task, true);
   } else if (action === "open-date-modal") {
     openCustomDateModal(task);
+  } else if (action === "set-priority") {
+    const newPrio = btn.dataset.prio;
+    if (newPrio && newPrio !== task.priority) {
+      updateTaskPriority(task, newPrio);
+    }
   }
 });
 

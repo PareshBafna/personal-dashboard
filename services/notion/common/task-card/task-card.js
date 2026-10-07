@@ -1,3 +1,4 @@
+const PRIORITY_ORDER = ["Critical", "High", "Medium", "Low", "Lowest"];
 const PRIORITY_RANK = { critical: 1, high: 2, medium: 3, low: 4, lowest: 5 };
 
 function getJiraPriorityIcon(prio) {
@@ -34,8 +35,9 @@ export function multiLevelTaskComparator(a, b) {
 }
 
 export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
-  const prioClass = `prio-${(task.priority || "lowest").toLowerCase()}`;
-  const cardPrioClass = `card-${(task.priority || "lowest").toLowerCase()}`;
+  const currentPrio = task.priority || "Medium";
+  const prioClass = `prio-${currentPrio.toLowerCase()}`;
+  const cardPrioClass = `card-${currentPrio.toLowerCase()}`;
   const dateFormatted = formatTaskDate(task);
   const normStatus = (task.status || "").toLowerCase().includes("progress") ? "in-progress" : (task.isDone ? "done" : "todo");
   const isInProgress = !task.isDone && normStatus === "in-progress";
@@ -54,7 +56,18 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
     `;
   }
 
-  const prioIcon = getJiraPriorityIcon(task.priority);
+  const prioIcon = getJiraPriorityIcon(currentPrio);
+
+  const priorityBtnsHtml = PRIORITY_ORDER.map(pName => {
+    const isCurrent = currentPrio.toLowerCase() === pName.toLowerCase();
+    const pIcon = getJiraPriorityIcon(pName);
+    const activeClass = isCurrent ? "is-active" : "";
+    return `
+      <button type="button" class="prio-quick-btn prio-btn-${pName.toLowerCase()} ${activeClass}" data-action="set-priority" data-id="${task.id}" data-prio="${pName}">
+        <i class="fa-solid ${pIcon}"></i> ${pName}
+      </button>
+    `;
+  }).join("");
 
   return `
     <div class="checklist-item ${cardPrioClass} ${task.isDone ? "is-done" : ""} ${isInProgress ? "is-in-progress" : ""}" data-id="${task.id}">
@@ -63,42 +76,60 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
           <i class="fa-solid ${isInProgress ? "fa-minus" : "fa-check"}"></i>
         </div>
         <div class="item-text-wrap">
-          <span class="item-title">${task.title}</span>
-          <div class="item-submeta">
-            <span class="date-highlight-badge ${task.hasTime ? "has-time" : ""}">
-              <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
-            </span>
-            ${task.priority ? `
-              <span class="task-priority ${prioClass}">
-                <i class="fa-solid ${prioIcon}" style="margin-right: 4px; font-size: 0.65rem;"></i>${task.priority}
+          <!-- SECTION 1: TASK DATA -->
+          <div class="task-info-section">
+            <div class="task-info-top-row">
+              <span class="item-title">${task.title}</span>
+              <div class="item-right-inline">
+                ${showStatusBadge ? `<span class="task-status-badge">${task.status}</span>` : ""}
+                <a href="${task.url}" target="_blank" class="open-link-btn" title="Open Notion">
+                  <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/><path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2"/></svg>
+                </a>
+              </div>
+            </div>
+            <div class="item-submeta">
+              <span class="date-highlight-badge ${task.hasTime ? "has-time" : ""}">
+                <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
               </span>
-            ` : ""}
+              ${task.priority ? `
+                <span class="task-priority ${prioClass}">
+                  <i class="fa-solid ${prioIcon}" style="margin-right: 4px; font-size: 0.65rem;"></i>${task.priority}
+                </span>
+              ` : ""}
+            </div>
           </div>
 
-          <!-- Date shortcut buttons above status actions -->
-          <div class="item-date-shortcuts">
-            <button type="button" class="date-quick-btn" data-action="set-date-today" data-id="${task.id}">
-              <i class="fa-regular fa-calendar-check"></i> Today
-            </button>
-            <button type="button" class="date-quick-btn" data-action="set-date-tomorrow" data-id="${task.id}">
-              <i class="fa-regular fa-calendar-plus"></i> Tomorrow
-            </button>
-            <button type="button" class="date-quick-btn" data-action="open-date-modal" data-id="${task.id}">
-              <i class="fa-regular fa-calendar-days"></i> Custom
-            </button>
-          </div>
+          <!-- DIVIDER: TASK DATA VS ACTIONS -->
+          <div class="task-card-divider"></div>
 
-          <div class="item-status-actions">
-            ${actionBtns}
-            <button type="button" class="status-action-btn" data-action="delete" data-id="${task.id}" style="color:#f43f5e; background:rgba(244,63,94,0.12);"><i class="fa-solid fa-trash"></i></button>
+          <!-- SECTION 2: TASK ACTIONS -->
+          <div class="task-actions-section">
+            <!-- Combined Row: Dates on left, Priorities on right (auto-wraps if narrow) -->
+            <div class="actions-combined-row">
+              <div class="item-date-shortcuts">
+                <button type="button" class="date-quick-btn" data-action="set-date-today" data-id="${task.id}">
+                  <i class="fa-regular fa-calendar-check"></i> Today
+                </button>
+                <button type="button" class="date-quick-btn" data-action="set-date-tomorrow" data-id="${task.id}">
+                  <i class="fa-regular fa-calendar-plus"></i> Tomorrow
+                </button>
+                <button type="button" class="date-quick-btn" data-action="open-date-modal" data-id="${task.id}">
+                  <i class="fa-regular fa-calendar-days"></i> Custom
+                </button>
+              </div>
+
+              <div class="item-prio-shortcuts">
+                ${priorityBtnsHtml}
+              </div>
+            </div>
+
+            <!-- Status Actions Row -->
+            <div class="item-status-actions">
+              ${actionBtns}
+              <button type="button" class="status-action-btn" data-action="delete" data-id="${task.id}" style="color:#f43f5e; background:rgba(244,63,94,0.12);"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="item-right">
-        ${showStatusBadge ? `<span class="task-status-badge">${task.status}</span>` : ""}
-        <a href="${task.url}" target="_blank" class="open-link-btn" title="Open Notion">
-          <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/><path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2"/></svg>
-        </a>
       </div>
     </div>
   `;
