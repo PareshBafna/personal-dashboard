@@ -46,9 +46,15 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
   let actionBtns = "";
 
   if (currentContext === "in-progress") {
-    actionBtns = `<button type="button" class="status-action-btn btn-to-todo" data-action="status" data-id="${task.id}" data-target="Not Started"><i class="fa-regular fa-circle-play"></i> Mark Not Started</button>`;
+    actionBtns = `
+      <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-id="${task.id}" data-target="Not Started"><i class="fa-regular fa-circle-play"></i> Mark Not Started</button>
+      <button type="button" class="status-action-btn btn-to-done" data-action="status" data-id="${task.id}" data-target="Done"><i class="fa-solid fa-circle-check"></i> Mark Completed</button>
+    `;
   } else if (currentContext === "todo") {
-    actionBtns = `<button type="button" class="status-action-btn btn-to-prog" data-action="status" data-id="${task.id}" data-target="In Progress"><i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress</button>`;
+    actionBtns = `
+      <button type="button" class="status-action-btn btn-to-prog" data-action="status" data-id="${task.id}" data-target="In Progress"><i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress</button>
+      <button type="button" class="status-action-btn btn-to-done" data-action="status" data-id="${task.id}" data-target="Done"><i class="fa-solid fa-circle-check"></i> Mark Completed</button>
+    `;
   } else if (currentContext === "done") {
     actionBtns = `
       <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-id="${task.id}" data-target="Not Started"><i class="fa-regular fa-circle-play"></i> Mark Not Started</button>
@@ -104,9 +110,12 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
 
           <!-- SECTION 2: TASK ACTIONS -->
           <div class="task-actions-section">
-            <!-- Combined Row: Dates on left, Priorities on right (auto-wraps if narrow) -->
+            <!-- Combined Row: Dates on left, Priorities on right -->
             <div class="actions-combined-row">
               <div class="item-date-shortcuts">
+                <button type="button" class="date-quick-btn btn-date-nodue" data-action="set-date-nodue" data-id="${task.id}">
+                  <i class="fa-solid fa-calendar-xmark"></i> No Due
+                </button>
                 <button type="button" class="date-quick-btn" data-action="set-date-today" data-id="${task.id}">
                   <i class="fa-regular fa-calendar-check"></i> Today
                 </button>

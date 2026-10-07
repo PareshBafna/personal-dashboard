@@ -2,11 +2,12 @@
   display: flex;
   justify-content: space-between;
   align-items: stretch;
-  padding: 12px 14px;
+  padding: 10px 10px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 10px;
+  border-radius: 8px;
   width: 100%;
+  margin: 0;
   box-sizing: border-box;
   transition: all 0.2s var(--ease);
   position: relative;
@@ -39,7 +40,7 @@
 
 .item-left {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
   flex: 1 1 100%;
   width: 100%;
@@ -47,10 +48,10 @@
 }
 
 .check-box {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  border-radius: 6px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border-radius: 5px;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.03);
   display: flex;
@@ -62,7 +63,7 @@
 }
 
 .check-box i {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   opacity: 0;
   color: #fff;
   transition: opacity 0.15s;
@@ -98,7 +99,7 @@
 .task-info-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -106,15 +107,15 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
 }
 
 .item-title {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 600;
   color: #f4f4f5;
-  line-height: 1.4;
+  line-height: 1.35;
   word-break: break-word;
   flex: 1 1 auto;
 }
@@ -122,7 +123,7 @@
 .item-right-inline {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -130,19 +131,19 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .date-highlight-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background: rgba(56, 189, 248, 0.08);
   border: 1px solid rgba(56, 189, 248, 0.2);
   color: #38bdf8;
-  padding: 2.5px 8px;
-  border-radius: 5px;
-  font-size: 0.68rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
   font-family: 'JetBrains Mono', monospace;
 }
 
@@ -155,9 +156,9 @@
 .task-priority {
   display: inline-flex;
   align-items: center;
-  padding: 2.5px 8px;
-  border-radius: 5px;
-  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -169,51 +170,54 @@
 .task-priority.prio-low { background: rgba(16, 185, 129, 0.15); color: #86efac; border: 1px solid rgba(16, 185, 129, 0.35); }
 .task-priority.prio-lowest { background: rgba(113, 113, 122, 0.15); color: #d4d4d8; border: 1px solid rgba(113, 113, 122, 0.35); }
 
-/* VISUAL DIVIDER: DATA VS ACTIONS */
+/* VISUAL DIVIDER */
 .task-card-divider {
   width: 100%;
   height: 1px;
   background: rgba(255, 255, 255, 0.18);
-  margin: 12px 0 12px 0;
+  margin: 10px 0 10px 0;
 }
 
 /* SECTION 2: TASK ACTIONS CONTAINER */
 .task-actions-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 
 /* COMBINED ROW: DATES ON LEFT, PRIORITIES ON RIGHT */
 .actions-combined-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .item-date-shortcuts {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1 1 200px;
 }
 
 .date-quick-btn {
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-dim);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 0.68rem;
+  border-radius: 5px;
+  padding: 4px 6px;
+  font-size: 0.65rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
@@ -224,33 +228,36 @@
 }
 
 .date-quick-btn i {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
 }
 
 .item-prio-shortcuts {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
+  flex: 2 1 260px;
 }
 
 .prio-quick-btn {
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 3.5px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.07);
   color: var(--text-dim);
-  border-radius: 5px;
-  padding: 4px 8px;
-  font-size: 0.66rem;
+  border-radius: 4px;
+  padding: 4px 5px;
+  font-size: 0.62rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
 .prio-quick-btn i {
-  font-size: 0.64rem;
+  font-size: 0.62rem;
 }
 
 .prio-quick-btn:hover {
@@ -298,29 +305,35 @@
 .item-status-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
   width: 100%;
 }
 
 .status-action-btn {
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 0.72rem;
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-muted);
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s;
 }
 
 .status-action-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
+}
+
+.status-action-btn[data-action="delete"] {
+  flex: 0 0 34px;
 }
 
 .btn-to-prog {
@@ -341,6 +354,16 @@
 
 .btn-to-todo:hover {
   background: rgba(147, 197, 253, 0.18) !important;
+}
+
+.btn-to-done {
+  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.btn-to-done:hover {
+  background: rgba(16, 185, 129, 0.18) !important;
 }
 
 .open-link-btn {

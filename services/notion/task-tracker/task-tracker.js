@@ -136,7 +136,7 @@ function renderFull() {
   container.innerHTML = filtered.map(t => renderTaskCard(t, true)).join("");
 }
 
-// POST endpoint to update task date
+// POST endpoint to update task date (handles date string or null for No Due)
 async function updateTaskDueDate(task, newDateString) {
   try {
     const propName = schemaProps.date || "Due Date";
@@ -144,7 +144,7 @@ async function updateTaskDueDate(task, newDateString) {
       pageId: task.id,
       properties: {
         [propName]: {
-          date: { start: newDateString }
+          date: newDateString ? { start: newDateString } : null
         }
       }
     };
@@ -157,8 +157,8 @@ async function updateTaskDueDate(task, newDateString) {
 
     if (!res.ok) throw new Error(await res.text());
 
-    task.date = newDateString;
-    task.hasTime = newDateString.includes("T");
+    task.date = newDateString || "";
+    task.hasTime = !!(newDateString && newDateString.includes("T"));
 
     await syncData();
   } catch (err) {
@@ -322,6 +322,8 @@ container.addEventListener("click", (e) => {
     deleteTask(id, () => {
       removeTaskDomInPlace(id);
     });
+  } else if (action === "set-date-nodue") {
+    updateTaskDueDate(task, null);
   } else if (action === "set-date-today") {
     setDateTodayOrTomorrow(task, false);
   } else if (action === "set-date-tomorrow") {
