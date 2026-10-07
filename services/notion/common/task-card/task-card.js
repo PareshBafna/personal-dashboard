@@ -36,7 +36,6 @@ export function multiLevelTaskComparator(a, b) {
 
 export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
   const currentPrio = task.priority || "Medium";
-  const prioClass = `prio-${currentPrio.toLowerCase()}`;
   const cardPrioClass = `card-${currentPrio.toLowerCase()}`;
   const dateFormatted = formatTaskDate(task);
   const normStatus = (task.status || "").toLowerCase().includes("progress") ? "in-progress" : (task.isDone ? "done" : "todo");
@@ -62,8 +61,6 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
     `;
   }
 
-  const prioIcon = getJiraPriorityIcon(currentPrio);
-
   const priorityBtnsHtml = PRIORITY_ORDER.map(pName => {
     const isCurrent = currentPrio.toLowerCase() === pName.toLowerCase();
     const pIcon = getJiraPriorityIcon(pName);
@@ -81,18 +78,21 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
         <!-- SECTION 1: TASK DATA -->
         <div class="task-info-section">
           <div class="task-info-top-row">
-            <span class="item-title">${task.title}</span>
-            ${showStatusBadge ? `<span class="task-status-badge">${task.status}</span>` : ""}
+            <div class="item-title-with-icon">
+              <i class="fa-solid fa-circle-check task-title-icon"></i>
+              <span class="item-title">${task.title}</span>
+            </div>
+            <div class="item-top-right-actions">
+              ${showStatusBadge ? `<span class="task-status-badge">${task.status}</span>` : ""}
+              <button type="button" class="card-delete-btn" data-action="delete" data-id="${task.id}" title="Delete Task">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
           </div>
           <div class="item-submeta">
             <span class="date-highlight-badge ${task.hasTime ? "has-time" : ""}">
               <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
             </span>
-            ${task.priority ? `
-              <span class="task-priority ${prioClass}">
-                <i class="fa-solid ${prioIcon}" style="margin-right: 4px; font-size: 0.65rem;"></i>${task.priority}
-              </span>
-            ` : ""}
           </div>
         </div>
 
@@ -122,10 +122,9 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
             ${priorityBtnsHtml}
           </div>
 
-          <!-- Row 3: Status / Delete actions -->
+          <!-- Row 3: Status Actions (Full Width) -->
           <div class="item-status-actions">
             ${actionBtns}
-            <button type="button" class="status-action-btn btn-delete-action" data-action="delete" data-id="${task.id}"><i class="fa-solid fa-trash"></i></button>
           </div>
 
           <!-- Row 4: Notion Action Button -->
