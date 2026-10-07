@@ -227,11 +227,9 @@ export function renderMasterView(taskList) {
 
         let innerContentHtml = "";
 
-        // Skip Priority for Recurring Tasks AND Due Date & Time
         if (s3Name === "Recurring Tasks" || s3Name === "Due Date & Time") {
           innerContentHtml = renderStatusColumns(s3Tasks, columnClass, s3Key, isPastDue);
         } else {
-          // Group tasks by Priority for Due Date
           const prioMap = new Map();
           for (const p of PRIORITY_ORDER) {
             prioMap.set(p, []);
@@ -306,8 +304,18 @@ export function attachAccordionSync(container) {
   dateAccordions.forEach(stage2 => {
     stage2.addEventListener("toggle", () => {
       if (stage2.open) {
-        const colDetails = stage2.querySelectorAll(".stage4-col-details");
-        colDetails.forEach(col => {
+        // Expand Stage 3 accordions (Recurring, Due Date & Time, Due Date)
+        stage2.querySelectorAll(".stage3-group").forEach(s3 => {
+          s3.open = true;
+        });
+
+        // Expand Stage 3.5 priority accordions
+        stage2.querySelectorAll(".stage-prio-group").forEach(sp => {
+          sp.open = true;
+        });
+
+        // Expand In Progress & Not Started columns (keep Completed closed)
+        stage2.querySelectorAll(".stage4-col-details").forEach(col => {
           if (col.dataset.col !== "done") {
             col.open = true;
           }
