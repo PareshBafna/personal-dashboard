@@ -115,11 +115,11 @@
 }
 
 .form-group label {
-  font-size: 0.68rem;
+  font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  color: #f4f4f5;
 }
 
 .form-group input,
@@ -173,9 +173,9 @@
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #d4d4d8;
   text-transform: none !important;
 }
 
