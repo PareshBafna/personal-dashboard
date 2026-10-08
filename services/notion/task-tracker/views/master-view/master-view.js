@@ -33,7 +33,7 @@ function getJiraPriorityIcon(prio) {
   return "fa-angles-down";
 }
 
-function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentDueToday) {
+function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentDueToday, applyDefaults = true) {
   const inProgressList = [];
   const notStartedList = [];
   const doneList = [];
@@ -53,11 +53,10 @@ function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentD
   notStartedList.sort(multiLevelTaskComparator);
   doneList.sort(multiLevelTaskComparator);
 
-  const openColAttr = isParentDueToday ? "open" : "";
+  const openColAttr = (applyDefaults && isParentDueToday) ? "open" : "";
 
   return `
     <div class="${columnClass}">
-      <!-- 1. IN PROGRESS -->
       <details class="stage4-col-details" data-accord-key="${keyPrefix}-prog" data-col="in-progress" ${openColAttr}>
         <summary class="stage4-col-summary col-prog">
           <i class="fa-solid fa-circle-half-stroke"></i>
@@ -70,7 +69,6 @@ function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentD
         </div>
       </details>
 
-      <!-- 2. NOT STARTED -->
       <details class="stage4-col-details" data-accord-key="${keyPrefix}-todo" data-col="todo" ${openColAttr}>
         <summary class="stage4-col-summary col-todo">
           <i class="fa-regular fa-circle-play"></i>
@@ -84,7 +82,6 @@ function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentD
       </details>
 
       ${!isPastDue ? `
-        <!-- 3. COMPLETED (ALWAYS CLOSED BY DEFAULT) -->
         <details class="stage4-col-details" data-accord-key="${keyPrefix}-done" data-col="done">
           <summary class="stage4-col-summary col-done">
             <i class="fa-solid fa-circle-check"></i>
@@ -101,7 +98,7 @@ function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentD
   `;
 }
 
-export function renderMasterView(taskList) {
+export function renderMasterView(taskList, applyDefaults = true) {
   const datedTasks = taskList.filter(t => (t.date || t.formulaDate || "").trim());
   if (!datedTasks.length) {
     return `
@@ -164,7 +161,7 @@ export function renderMasterView(taskList) {
     else if (s1Name === "Future Due") { s1Icon = "fa-calendar-week"; s1Class = "s1-future"; }
 
     const isDueToday = s1Name === "Due Today";
-    const s1OpenAttr = isDueToday ? "open" : "";
+    const s1OpenAttr = (applyDefaults && isDueToday) ? "open" : "";
     const s1Key = `s1-${s1Name.replace(/\s+/g, "_")}`;
 
     htmlFragments.push(`
@@ -192,8 +189,8 @@ export function renderMasterView(taskList) {
 
       const dObj = new Date(dKey);
       const dLabel = dObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-      const s2Key = `s2-${s1Name}-${dKey}`;
-      const s2OpenAttr = isDueToday ? "open" : "";
+      const s2Key = `s2-${s1Name.replace(/\s+/g, "_")}-${dKey}`;
+      const s2OpenAttr = (applyDefaults && isDueToday) ? "open" : "";
 
       htmlFragments.push(`
         <details class="stage2-group" data-accord-key="${s2Key}" ${s2OpenAttr}>
@@ -224,13 +221,13 @@ export function renderMasterView(taskList) {
 
         const isPastDue = s1Name === "Past Due";
         const columnClass = isPastDue ? "stage4-columns-past-due" : "stage4-columns";
-        const s3Key = `s3-${s1Name}-${dKey}-${s3Name.replace(/\s+/g, "_")}`;
-        const s3OpenAttr = isDueToday ? "open" : "";
+        const s3Key = `${s2Key}-${s3Name.replace(/[\s&]+/g, "_")}`;
+        const s3OpenAttr = (applyDefaults && isDueToday) ? "open" : "";
 
         let innerContentHtml = "";
 
         if (s3Name === "Recurring Tasks" || s3Name === "Due Date & Time") {
-          innerContentHtml = renderStatusColumns(s3Tasks, columnClass, s3Key, isPastDue, isDueToday);
+          innerContentHtml = renderStatusColumns(s3Tasks, columnClass, s3Key, isPastDue, isDueToday, applyDefaults);
         } else {
           const prioMap = new Map();
           for (const p of PRIORITY_ORDER) {
@@ -251,9 +248,9 @@ export function renderMasterView(taskList) {
 
             const pKey = `${s3Key}-prio-${pName.toLowerCase()}`;
             const prioThemeClass = `prio-grp-${pName.toLowerCase()}`;
-            const prioColumnsHtml = renderStatusColumns(pTasks, columnClass, pKey, isPastDue, isDueToday);
+            const prioColumnsHtml = renderStatusColumns(pTasks, columnClass, pKey, isPastDue, isDueToday, applyDefaults);
             const jiraIcon = getJiraPriorityIcon(pName);
-            const prioOpenAttr = isDueToday ? "open" : "";
+            const prioOpenAttr = (applyDefaults && isDueToday) ? "open" : "";
 
             prioHtmlFragments.push(`
               <details class="stage-prio-group ${prioThemeClass}" data-accord-key="${pKey}" ${prioOpenAttr}>
@@ -303,29 +300,17 @@ export function renderMasterView(taskList) {
 
 export function attachDateAccordionSync(container) {
   if (!container) return;
-  const dateAccordions = container.querySelectorAll(".stage2-group");
-  dateAccordions.forEach(stage2 => {
-    stage2.addEventListener("toggle", (e) => {
-      // Trigger ONLY when user manually clicks to open the date accordion
-      if (!e.isTrusted) return;
-      if (stage2.open) {
-        // 1. Expand all Stage 3 task type accordions (Recurring, Due Date & Time, Due Date)
-        stage2.querySelectorAll(".stage3-group").forEach(s3 => {
-          s3.open = true;
-        });
-
-        // 2. Expand all Priority accordions
-        stage2.querySelectorAll(".stage-prio-group").forEach(sp => {
-          sp.open = true;
-        });
-
-        // 3. Expand Not Started and In Progress status columns (leave Completed closed)
-        stage2.querySelectorAll(".stage4-col-details").forEach(col => {
-          if (col.dataset.col !== "done") {
-            col.open = true;
-          }
-        });
-      }
+  container.querySelectorAll(".stage2-group").forEach(stage2 => {
+    const summary = stage2.querySelector(":scope > summary");
+    if (!summary) return;
+    summary.addEventListener("click", () => {
+      // click fires before native toggle: open === false means about to open
+      if (stage2.open) return;
+      stage2.querySelectorAll(".stage3-group").forEach(s3 => { s3.open = true; });
+      stage2.querySelectorAll(".stage-prio-group").forEach(sp => { sp.open = true; });
+      stage2.querySelectorAll(".stage4-col-details").forEach(col => {
+        if (col.dataset.col !== "done") col.open = true;
+      });
     });
   });
 }

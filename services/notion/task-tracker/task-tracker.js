@@ -118,59 +118,63 @@ function filterTasks(tasks) {
   });
 }
 
-function renderFull() {
+function renderFull(isHardBoot = false) {
   if (!container) return;
   const { status } = getFilterState();
   const filtered = filterTasks(allTasks);
 
   if (status === "master") {
-    container.innerHTML = renderMasterView(filtered);
-    attachDateAccordionSync(container);
+    const prevScroll = container.scrollTop;
+
+    if (isHardBoot) {
+      // First boot on page load: Render with default open accordions
+      container.innerHTML = renderMasterView(filtered, true);
+      attachDateAccordionSync(container);
+    } else {
+      // User triggered sync / edit: Capture exactly which keys are open right now
+      const currentOpenKeys = new Set();
+      container.querySelectorAll("details").forEach(d => {
+        if (d.open && d.dataset.accordKey) {
+          currentOpenKeys.add(d.dataset.accordKey);
+        }
+      });
+
+      // Render all closed
+      container.innerHTML = renderMasterView(filtered, false);
+
+      // Reopen only the keys user had open
+      container.querySelectorAll("details").forEach(d => {
+        if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
+          d.open = true;
+        }
+      });
+
+      attachDateAccordionSync(container);
+    }
+
+    container.scrollTop = prevScroll;
     return;
   }
+
   if (status === "inbox") {
     container.innerHTML = renderInboxView(filtered);
     return;
   }
+
   filtered.sort(multiLevelTaskComparator);
   container.innerHTML = filtered.map(t => renderTaskCard(t, true)).join("");
 }
 
-function applyTaskUpdateLocally(task) {
-  const { status } = getFilterState();
-  const filtered = filterTasks(allTasks);
-
-  if (status === "master") {
-    const openKeys = new Set();
-    container.querySelectorAll("details").forEach(d => {
-      if (d.dataset.accordKey && d.open) openKeys.add(d.dataset.accordKey);
-    });
-
-    const prevScroll = container.scrollTop;
-    container.innerHTML = renderMasterView(filtered);
-    attachDateAccordionSync(container);
-
-    container.querySelectorAll("details").forEach(d => {
-      if (d.dataset.accordKey && openKeys.has(d.dataset.accordKey)) {
-        d.open = true;
-      }
-    });
-    container.scrollTop = prevScroll;
-  } else {
-    renderFull();
-  }
-
-  updateTelemetry(allTasks);
-}
-
-// POST endpoint to update task date (handles date string or null for No Due)
+// POST endpoint to update task date
 async function updateTaskDueDate(task, newDateString) {
   const prevDate = task.date;
   const prevHasTime = task.hasTime;
 
   task.date = newDateString || "";
   task.hasTime = !!(newDateString && newDateString.includes("T"));
-  applyTaskUpdateLocally(task);
+
+  renderFull(false);
+  updateTelemetry(allTasks);
 
   try {
     const propName = schemaProps.date || "Due Date";
@@ -194,16 +198,18 @@ async function updateTaskDueDate(task, newDateString) {
     console.error("Failed to update task date:", err);
     task.date = prevDate;
     task.hasTime = prevHasTime;
-    applyTaskUpdateLocally(task);
+    renderFull(false);
+    updateTelemetry(allTasks);
   }
 }
 
 // POST endpoint to update task priority
 async function updateTaskPriority(task, newPriority) {
   const prevPrio = task.priority;
-
   task.priority = newPriority;
-  applyTaskUpdateLocally(task);
+
+  renderFull(false);
+  updateTelemetry(allTasks);
 
   try {
     const propName = schemaProps.priority || "Priority";
@@ -226,7 +232,8 @@ async function updateTaskPriority(task, newPriority) {
   } catch (err) {
     console.error("Failed to update task priority:", err);
     task.priority = prevPrio;
-    applyTaskUpdateLocally(task);
+    renderFull(false);
+    updateTelemetry(allTasks);
   }
 }
 
@@ -249,20 +256,19 @@ function setDateTodayOrTomorrow(task, isTomorrow = false) {
   updateTaskDueDate(task, finalDateStr);
 }
 
-// In-place DOM update when changing status without re-rendering accordions
 function updateTaskDomInPlace(task, nextStatus) {
   const card = container.querySelector(`.checklist-item[data-id="${task.id}"]`);
   if (!card) return;
 
   const currentColumn = card.closest(".stage4-col-details");
   if (!currentColumn) {
-    renderFull();
+    renderFull(false);
     return;
   }
 
   const parentColumnsWrap = currentColumn.closest(".stage4-columns, .stage4-columns-past-due");
   if (!parentColumnsWrap) {
-    renderFull();
+    renderFull(false);
     return;
   }
 
@@ -276,7 +282,7 @@ function updateTaskDomInPlace(task, nextStatus) {
 
   const targetColumn = parentColumnsWrap.querySelector(`.stage4-col-details[data-col="${targetColType}"]`);
   if (!targetColumn) {
-    renderFull();
+    renderFull(false);
     return;
   }
 
@@ -335,7 +341,6 @@ function removeTaskDomInPlace(id) {
   updateTelemetry(allTasks);
 }
 
-// Global action listener
 container.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-action]");
   if (!btn) return;
@@ -374,44 +379,14 @@ container.addEventListener("click", (e) => {
   }
 });
 
-// Sync data preserving existing live DOM accordion open attributes
-async function syncData() {
+async function syncData(isHardBoot = false) {
   const refBtn = document.getElementById("refreshBtn");
   if (refBtn) refBtn.classList.add("spinning");
 
   try {
-    const liveOpenKeys = new Set();
-    container.querySelectorAll("details").forEach(d => {
-      if (d.dataset.accordKey && d.open) {
-        liveOpenKeys.add(d.dataset.accordKey);
-      }
-    });
-
-    const hadExistingDOM = liveOpenKeys.size > 0;
-    const prevScroll = container.scrollTop;
-
     allTasks = await fetchAllTasks();
     updateTelemetry(allTasks);
-
-    const { status } = getFilterState();
-    const filtered = filterTasks(allTasks);
-
-    if (status === "master") {
-      container.innerHTML = renderMasterView(filtered);
-      attachDateAccordionSync(container);
-
-      if (hadExistingDOM) {
-        container.querySelectorAll("details").forEach(d => {
-          if (d.dataset.accordKey) {
-            d.open = liveOpenKeys.has(d.dataset.accordKey);
-          }
-        });
-      }
-
-      container.scrollTop = prevScroll;
-    } else {
-      renderFull();
-    }
+    renderFull(isHardBoot);
   } catch (err) {
     console.error("Sync error:", err);
   } finally {
@@ -419,11 +394,12 @@ async function syncData() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+// Module entry
+(async () => {
   await loadFragments();
-  initFilterToolbar(() => renderFull());
-  initAddTask(() => syncData());
-  document.getElementById("refreshBtn").addEventListener("click", syncData);
+  initFilterToolbar(() => renderFull(false));
+  initAddTask(() => syncData(false));
+  document.getElementById("refreshBtn").addEventListener("click", () => syncData(false));
   await resolvePareshUser();
-  await syncData();
-});
+  await syncData(true); // Hard boot: opens default accordions
+})();
