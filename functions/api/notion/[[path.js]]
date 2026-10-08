@@ -1,4 +1,4 @@
-import { NOTION_CONFIG } from "../../../services/notion/credentials/credentials.js";
+import { NOTION_CONFIG } from "./credentials.js";
 
 export async function onRequest(context) {
   const { request, env, params } = context;
@@ -17,7 +17,7 @@ export async function onRequest(context) {
   }
 
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: "Missing Notion API key in config or ENV" }), {
+    return new Response(JSON.stringify({ error: "Missing Notion API key" }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
