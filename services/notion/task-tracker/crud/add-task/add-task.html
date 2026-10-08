@@ -10,63 +10,95 @@
         <i class="fa-solid fa-plus-circle" style="color: var(--notion-grey-primary); font-size: 1.1rem;"></i>
         <h3>Add New Task</h3>
       </div>
+      <button type="button" id="closeModalCrossBtn" class="modal-cross-btn" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
     <form id="newTaskForm" class="modal-form">
-      <!-- TASK NAME: TEXTAREA TEXTFIELD -->
+      <!-- 1. TASK NAME -->
       <div class="form-group">
         <label for="taskTitleInput">Task Name *</label>
         <textarea id="taskTitleInput" class="task-title-textarea" rows="3" placeholder="What needs to be done?" required></textarea>
       </div>
 
+      <!-- 2. DUE DATE (SAME AS CARD BUTTONS) -->
       <div class="form-group date-block">
         <div class="date-header-row">
-          <label for="taskDateInput">Due Date</label>
-          <label class="time-toggle-label">
+          <label>Due Date</label>
+          <label class="time-toggle-label" id="timeToggleWrapper">
             <input type="checkbox" id="taskIncludeTimeToggle" />
             <span>Include Time</span>
           </label>
         </div>
-        <div class="date-inputs-row">
+
+        <!-- Date Action Buttons Grid -->
+        <div class="modal-date-shortcuts">
+          <button type="button" class="modal-action-btn date-btn" data-date="nodue">
+            <i class="fa-solid fa-calendar-xmark"></i> No Due
+          </button>
+          <button type="button" class="modal-action-btn date-btn active" data-date="today">
+            <i class="fa-regular fa-calendar-check"></i> Today
+          </button>
+          <button type="button" class="modal-action-btn date-btn" data-date="tomorrow">
+            <i class="fa-regular fa-calendar-plus"></i> Tomorrow
+          </button>
+          <button type="button" class="modal-action-btn date-btn" data-date="custom">
+            <i class="fa-regular fa-calendar-days"></i> Custom
+          </button>
+        </div>
+
+        <div class="date-inputs-row" style="margin-top: 6px;">
           <input type="date" id="taskDateInput" />
           <input type="time" id="taskTimeInput" class="time-input hidden" />
         </div>
-        <div class="date-shortcuts">
-          <button type="button" class="date-btn active" id="btnDateToday">Today</button>
-          <button type="button" class="date-btn" id="btnDateTomorrow">Tomorrow</button>
-          <button type="button" class="date-btn" id="btnDateNoDue">No Due</button>
+      </div>
+
+      <!-- 3. PRIORITY (SAME AS CARD BUTTONS) -->
+      <div class="form-group">
+        <label>Priority</label>
+        <input type="hidden" id="taskPriorityInput" value="Medium" />
+        <div class="modal-prio-shortcuts">
+          <button type="button" class="modal-action-btn prio-btn prio-btn-critical" data-prio="Critical">
+            <i class="fa-solid fa-angles-up"></i> Critical
+          </button>
+          <button type="button" class="modal-action-btn prio-btn prio-btn-high" data-prio="High">
+            <i class="fa-solid fa-chevron-up"></i> High
+          </button>
+          <button type="button" class="modal-action-btn prio-btn prio-btn-medium active" data-prio="Medium">
+            <i class="fa-solid fa-equals"></i> Medium
+          </button>
+          <button type="button" class="modal-action-btn prio-btn prio-btn-low" data-prio="Low">
+            <i class="fa-solid fa-chevron-down"></i> Low
+          </button>
+          <button type="button" class="modal-action-btn prio-btn prio-btn-lowest" data-prio="Lowest">
+            <i class="fa-solid fa-angles-down"></i> Lowest
+          </button>
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="taskPriorityInput">Priority</label>
-        <select id="taskPriorityInput">
-          <option value="Critical">Critical</option>
-          <option value="High">High</option>
-          <option value="Medium" selected>Medium</option>
-          <option value="Low">Low</option>
-          <option value="Lowest">Lowest</option>
-        </select>
-      </div>
-
+      <!-- 4. DESCRIPTION -->
       <div class="form-group">
         <label for="taskDescInput">Description (Optional)</label>
         <textarea id="taskDescInput" rows="2" placeholder="Add extra context or notes..."></textarea>
       </div>
 
+      <!-- 5. URL -->
       <div class="form-group">
         <label for="taskUrlInput">URL (Optional)</label>
         <input type="url" id="taskUrlInput" placeholder="https://..." autocomplete="off" />
       </div>
 
+      <!-- 6. PERSON -->
       <div class="form-group">
-        <label for="taskPersonInput">Person</label>
+        <label>Person</label>
         <div class="person-field-pill">
           <i class="fa-solid fa-user-circle"></i>
           <span id="personNameDisplay">Paresh Bafna</span>
         </div>
       </div>
 
+      <!-- 7. FOOTER ACTIONS -->
       <div class="modal-footer single-row-footer">
         <button type="button" id="cancelModalBtn" class="action-btn secondary-btn modal-btn">Cancel</button>
         <button type="submit" id="submitTaskBtn" class="action-btn primary-btn modal-btn">

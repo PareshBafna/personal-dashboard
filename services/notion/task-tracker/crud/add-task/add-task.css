@@ -68,6 +68,7 @@
   padding: 12px 14px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -81,25 +82,40 @@
   font-size: 0.95rem;
   font-weight: 700;
   color: #fff;
+  margin: 0;
+}
+
+.modal-cross-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 4px;
+}
+
+.modal-cross-btn:hover {
+  color: #fff;
 }
 
 .modal-form {
   padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   width: 100%;
 }
 
 .form-group label {
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -107,7 +123,6 @@
 }
 
 .form-group input,
-.form-group select,
 .form-group textarea {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -121,20 +136,11 @@
   box-sizing: border-box;
 }
 
-.form-group textarea {
-  resize: vertical;
-}
-
-/* Multiline textfield specifically for Task Name */
 .task-title-textarea {
   min-height: 72px;
   max-height: 150px;
   line-height: 1.4;
-}
-
-.form-group select option {
-  background: #18191b;
-  color: #fff;
+  resize: vertical;
 }
 
 .person-field-pill {
@@ -148,7 +154,7 @@
   color: #ffffff;
   font-size: 0.84rem;
   font-weight: 600;
-  height: 36px;
+  height: 38px;
   box-sizing: border-box;
 }
 
@@ -174,9 +180,9 @@
 }
 
 .time-toggle-label input[type="checkbox"] {
-  width: 13px;
-  height: 13px;
-  accent-color: #3f3f46;
+  width: 14px;
+  height: 14px;
+  accent-color: #3b82f6;
 }
 
 .date-inputs-row {
@@ -186,32 +192,110 @@
 }
 
 .time-input.hidden {
-  display: none;
+  display: none !important;
 }
 
-.date-shortcuts {
-  display: flex;
+/* ==============================================
+   CARD-STYLE BUTTON GRIDS FOR MODAL
+   ============================================== */
+
+/* Date shortcuts grid: 4 columns */
+.modal-date-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.date-btn {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--panel-border);
-  color: var(--text-dim);
-  padding: 6px 4px;
+.modal-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   border-radius: 6px;
-  font-size: 0.7rem;
+  padding: 7px 4px;
+  min-height: 34px;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
-  text-align: center;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d4d4d8;
+  transition: all 0.15s ease;
 }
 
-.date-btn.active {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+.modal-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.modal-action-btn i {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.modal-date-shortcuts .date-btn.active {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Priority shortcuts grid: 5 columns */
+.modal-prio-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-prio-shortcuts .prio-btn {
+  min-height: 32px;
+  font-size: 0.68rem;
+  color: #a1a1aa;
+}
+
+.modal-prio-shortcuts .prio-btn.prio-btn-critical.active {
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #fca5a5;
+  font-weight: 700;
+}
+
+.modal-prio-shortcuts .prio-btn.prio-btn-high.active {
+  background: rgba(249, 115, 22, 0.25);
+  border: 1px solid rgba(249, 115, 22, 0.6);
+  color: #fdba74;
+  font-weight: 700;
+}
+
+.modal-prio-shortcuts .prio-btn.prio-btn-medium.active {
+  background: rgba(234, 179, 8, 0.25);
+  border: 1px solid rgba(234, 179, 8, 0.6);
+  color: #fde047;
+  font-weight: 700;
+}
+
+.modal-prio-shortcuts .prio-btn.prio-btn-low.active {
+  background: rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.6);
+  color: #86efac;
+  font-weight: 700;
+}
+
+.modal-prio-shortcuts .prio-btn.prio-btn-lowest.active {
+  background: rgba(113, 113, 122, 0.25);
+  border: 1px solid rgba(113, 113, 122, 0.6);
+  color: #e4e4e7;
+  font-weight: 700;
 }
 
 .single-row-footer {
@@ -226,8 +310,9 @@
 
 .single-row-footer .modal-btn {
   flex: 1;
-  padding: 8px 14px;
+  padding: 9px 14px;
   font-size: 0.82rem;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: 8px;
+  cursor: pointer;
 }
