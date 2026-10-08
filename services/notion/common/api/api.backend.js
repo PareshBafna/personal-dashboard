@@ -1,5 +1,5 @@
 import express from "express";
-import { NOTION_CONFIG } from "../../credentials/credentials.js";
+import { NOTION_CONFIG } from "../../../../functions/api/notion/credentials.js";
 
 const router = express.Router();
 
