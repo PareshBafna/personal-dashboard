@@ -34,10 +34,37 @@ export function multiLevelTaskComparator(a, b) {
   return (a.title || "").localeCompare(b.title || "");
 }
 
+function getDateBadgeColorClass(task) {
+  const rawStr = task.date || task.formulaDate || "";
+  if (!rawStr.trim()) return "date-color-red";
+
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const datePart = rawStr.slice(0, 10);
+
+  // If task has time (e.g., Oct 4 04:00 PM)
+  if (task.hasTime && rawStr.includes("T")) {
+    const taskTime = new Date(rawStr).getTime();
+    if (!isNaN(taskTime)) {
+      return taskTime < now.getTime() ? "date-color-red" : "date-color-blue";
+    }
+  }
+
+  // If task has NO time:
+  // Date strictly before today -> RED (Past due with NO time)
+  // Date today or future -> BLUE (Current due dates with NO time)
+  if (datePart < todayStr) {
+    return "date-color-red";
+  }
+
+  return "date-color-blue";
+}
+
 export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
   const currentPrio = task.priority || "Medium";
   const cardPrioClass = `card-${currentPrio.toLowerCase()}`;
   const dateFormatted = formatTaskDate(task);
+  const dateColorClass = getDateBadgeColorClass(task);
   const normStatus = (task.status || "").toLowerCase().includes("progress") ? "in-progress" : (task.isDone ? "done" : "todo");
   const isInProgress = !task.isDone && normStatus === "in-progress";
 
@@ -90,7 +117,7 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
             </div>
           </div>
           <div class="item-submeta">
-            <span class="date-highlight-badge ${task.hasTime ? "has-time" : ""}">
+            <span class="date-highlight-badge ${dateColorClass}">
               <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
             </span>
           </div>
