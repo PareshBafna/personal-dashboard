@@ -245,7 +245,7 @@
   color: #ffffff;
 }
 
-/* Row 2: Priority Buttons - Neutral Clean (Active Only Has Accent) */
+/* Row 2: Priority Buttons - Neutral Clean */
 .item-prio-shortcuts {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -392,18 +392,22 @@
   background: rgba(16, 185, 129, 0.22) !important;
 }
 
-/* Row 4: Open In Notion Button */
+/* Row 4: Notion & Update Action Buttons (Side by Side) */
 .item-notion-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
   box-sizing: border-box;
 }
 
 .open-notion-btn {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
+  width: auto;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 6px;
@@ -415,6 +419,7 @@
   text-decoration: none;
   box-sizing: border-box;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
@@ -430,6 +435,28 @@
   height: 15px;
   flex-shrink: 0;
   stroke: #ffffff;
+}
+
+/* Update Data Button Style */
+.update-data-card-btn {
+  background: rgba(56, 189, 248, 0.08) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  color: #38bdf8 !important;
+}
+
+.update-data-card-btn:hover {
+  background: rgba(56, 189, 248, 0.18) !important;
+  border-color: rgba(56, 189, 248, 0.5) !important;
+  color: #ffffff !important;
+}
+
+.update-data-card-btn i {
+  font-size: 0.8rem;
+  color: #38bdf8;
+}
+
+.update-data-card-btn:hover i {
+  color: #ffffff;
 }
 
 /* Custom Date Modal Popup */

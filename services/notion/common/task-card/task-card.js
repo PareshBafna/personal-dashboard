@@ -127,8 +127,12 @@ export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
             ${actionBtns}
           </div>
 
-          <!-- Row 4: Notion Action Button -->
+          <!-- Row 4: Notion & Update Action Buttons -->
           <div class="item-notion-action">
+            <button type="button" class="open-notion-btn update-data-card-btn" data-action="open-update-modal" data-id="${task.id}">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>Update Data</span>
+            </button>
             <a href="${task.url}" target="_blank" class="open-notion-btn">
               <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/>

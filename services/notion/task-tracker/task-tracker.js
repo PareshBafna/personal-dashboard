@@ -5,7 +5,7 @@ import { renderMasterView, attachDateAccordionSync } from "./views/master-view/m
 import { renderInboxView } from "./views/inbox-view/inbox-view.js";
 import { renderTaskCard, multiLevelTaskComparator } from "../common/task-card/task-card.js";
 import { initAddTask } from "./crud/add-task/add-task.js";
-import { updateTaskStatus } from "./crud/update-task/update-task.js";
+import { updateTaskStatus, openUpdateTaskModal } from "./crud/update-task/update-task.js";
 import { deleteTask } from "./crud/delete-task/delete-task.js";
 
 let allTasks = [];
@@ -376,6 +376,11 @@ container.addEventListener("click", (e) => {
     if (newPrio && newPrio !== task.priority) {
       updateTaskPriority(task, newPrio);
     }
+  } else if (action === "open-update-modal") {
+    openUpdateTaskModal(task, () => {
+      renderFull(false);
+      updateTelemetry(allTasks);
+    });
   }
 });
 
