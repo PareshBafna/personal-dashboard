@@ -1,4 +1,4 @@
-import { GOOGLE_CREDS } from "../../../google/credentials/google.creds.js";
+import { GOOGLE_CREDS } from "../../../google/credentials/google.credentials.js";
 
 export async function onRequestGet() {
   const scopes = [
