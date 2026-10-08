@@ -136,8 +136,42 @@ function renderFull() {
   container.innerHTML = filtered.map(t => renderTaskCard(t, true)).join("");
 }
 
+function applyTaskUpdateLocally(task) {
+  const { status } = getFilterState();
+  const filtered = filterTasks(allTasks);
+
+  if (status === "master") {
+    const openKeys = new Set();
+    container.querySelectorAll("details").forEach(d => {
+      if (d.dataset.accordKey && d.open) openKeys.add(d.dataset.accordKey);
+    });
+
+    const prevScroll = container.scrollTop;
+    container.innerHTML = renderMasterView(filtered);
+    attachDateAccordionSync(container);
+
+    container.querySelectorAll("details").forEach(d => {
+      if (d.dataset.accordKey && openKeys.has(d.dataset.accordKey)) {
+        d.open = true;
+      }
+    });
+    container.scrollTop = prevScroll;
+  } else {
+    renderFull();
+  }
+
+  updateTelemetry(allTasks);
+}
+
 // POST endpoint to update task date (handles date string or null for No Due)
 async function updateTaskDueDate(task, newDateString) {
+  const prevDate = task.date;
+  const prevHasTime = task.hasTime;
+
+  task.date = newDateString || "";
+  task.hasTime = !!(newDateString && newDateString.includes("T"));
+  applyTaskUpdateLocally(task);
+
   try {
     const propName = schemaProps.date || "Due Date";
     const body = {
@@ -156,18 +190,21 @@ async function updateTaskDueDate(task, newDateString) {
     });
 
     if (!res.ok) throw new Error(await res.text());
-
-    task.date = newDateString || "";
-    task.hasTime = !!(newDateString && newDateString.includes("T"));
-
-    await syncData();
   } catch (err) {
     console.error("Failed to update task date:", err);
+    task.date = prevDate;
+    task.hasTime = prevHasTime;
+    applyTaskUpdateLocally(task);
   }
 }
 
 // POST endpoint to update task priority
 async function updateTaskPriority(task, newPriority) {
+  const prevPrio = task.priority;
+
+  task.priority = newPriority;
+  applyTaskUpdateLocally(task);
+
   try {
     const propName = schemaProps.priority || "Priority";
     const body = {
@@ -186,11 +223,10 @@ async function updateTaskPriority(task, newPriority) {
     });
 
     if (!res.ok) throw new Error(await res.text());
-
-    task.priority = newPriority;
-    await syncData();
   } catch (err) {
     console.error("Failed to update task priority:", err);
+    task.priority = prevPrio;
+    applyTaskUpdateLocally(task);
   }
 }
 
