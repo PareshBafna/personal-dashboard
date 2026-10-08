@@ -1,4 +1,4 @@
-import { GOOGLE_CREDS } from "../../../google/credentials/google.credentials.js";
+import { GOOGLE_CREDS } from "./google.credentials.js";
 
 export async function onRequestGet() {
   const results = await Promise.allSettled(
