@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Cloud Storage Command Hub</title>
+  <link rel="stylesheet" href="./google-account-details.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="url(#cloudGrad)"/>
+            <defs>
+              <linearGradient id="cloudGrad" x1="0" y1="4" x2="24" y2="20" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#388bfd"/>
+                <stop offset="0.5" stop-color="#2ea043"/>
+                <stop offset="0.8" stop-color="#f59e0b"/>
+                <stop offset="1" stop-color="#f43f5e"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1>Google Storage Grid</h1>
+          <p class="subtitle">11 Accounts • Realtime API Quota Telemetry</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="refreshBtn" class="action-btn primary-btn">
+          <svg class="refresh-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3L21.5 8M22 12.5a10 10 0 0 1-18.8 4.2L2.5 16"/>
+          </svg>
+          <span>Sync Accounts</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Master Telemetry Bar -->
+    <section class="master-panel">
+      <div class="panel-left">
+        <div class="stat-badge">
+          <span class="live-indicator"></span> LIVE METRICS
+        </div>
+        <div class="metric-row">
+          <div class="metric-block">
+            <span class="metric-label">Total Allocated</span>
+            <span id="totalCapacity" class="metric-number alloc-num">0.00 GB</span>
+          </div>
+          <div class="metric-sep">/</div>
+          <div class="metric-block">
+            <span class="metric-label">Total Consumed</span>
+            <span id="totalUsed" class="metric-number accent-num">0.00 GB</span>
+          </div>
+          <div class="metric-sep">/</div>
+          <div class="metric-block">
+            <span class="metric-label">Total Remaining</span>
+            <span id="totalFree" class="metric-number free-num">0.00 GB</span>
+          </div>
+          <div class="metric-sep">/</div>
+          <div class="metric-block">
+            <span class="metric-label">Global Usage</span>
+            <span id="totalPercent" class="metric-number highlight-num">0.0%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-right">
+        <div class="master-progress-track">
+          <div id="masterProgressBar" class="master-progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Controls Toolbar (Search & Filter) -->
+    <nav class="toolbar">
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Filter by email or name..." autocomplete="off">
+      </div>
+
+      <div class="filter-pills" id="filterPills">
+        <button class="pill active" data-filter="all">All (11)</button>
+        <button class="pill" data-filter="primary">Primary Hub</button>
+        <button class="pill" data-filter="warning">Warning (&gt;50%)</button>
+        <button class="pill" data-filter="danger">Critical (&gt;80%)</button>
+      </div>
+    </nav>
+
+    <!-- Accounts Grid -->
+    <main id="accountsGrid" class="accounts-grid"></main>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <h3 id="modalName">Account Details</h3>
+          <p id="modalEmail" class="modal-email"></p>
+        </div>
+        <button id="modalClose" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-stat-grid">
+          <div class="modal-stat-card">
+            <span class="m-stat-label">Limit</span>
+            <span id="modalLimit" class="m-stat-value alloc-num">--</span>
+          </div>
+          <div class="modal-stat-card">
+            <span class="m-stat-label">Used</span>
+            <span id="modalUsed" class="m-stat-value accent-num">--</span>
+          </div>
+          <div class="modal-stat-card">
+            <span class="m-stat-label">Free</span>
+            <span id="modalFree" class="m-stat-value free-num">--</span>
+          </div>
+          <div class="modal-stat-card">
+            <span class="m-stat-label">Usage Rate</span>
+            <span id="modalPercent" class="m-stat-value highlight-num">--</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modalCopyEmail" class="action-btn secondary-btn">Copy Email</button>
+        <a id="modalOpenDrive" href="https://drive.google.com" target="_blank" class="action-btn primary-btn">Open Drive ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="./google-account-details.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Photos & Albums Manager</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./google-photos-albums-manager.css">
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Header matches account-details -->
+    <header class="dashboard-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="url(#cloudGrad)"/>
+            <defs>
+              <linearGradient id="cloudGrad" x1="0" y1="4" x2="24" y2="20" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#388bfd"/>
+                <stop offset="0.5" stop-color="#2ea043"/>
+                <stop offset="0.8" stop-color="#f59e0b"/>
+                <stop offset="1" stop-color="#f43f5e"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1>Accounts Folder Hub</h1>
+          <p class="subtitle">12 Accounts • Multi-select & Drag-and-Drop</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="expand-all-btn" class="action-btn">
+          <i class="fa-solid fa-chevron-down" style="color: #60a5fa;"></i>
+          <span>Expand All</span>
+        </button>
+        <button id="collapse-all-btn" class="action-btn">
+          <i class="fa-solid fa-chevron-up" style="color: #60a5fa;"></i>
+          <span>Collapse All</span>
+        </button>
+        <button id="reset-btn" class="action-btn danger-btn">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>Reset Data</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Master Info Panel -->
+    <section class="master-panel">
+      <div class="panel-left">
+        <span class="stat-badge"><i class="fa-solid fa-circle-info"></i> Guide</span>
+        <span class="tip-text">Click to select items. Drag cards across accounts to reassign.</span>
+      </div>
+      <div id="stats-counter" class="stats-number">0 folders total</div>
+    </section>
+
+    <!-- Toolbar -->
+    <nav class="toolbar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass" style="font-size: 0.85rem;"></i>
+        <input type="text" id="search-input" placeholder="Search folder names..." autocomplete="off">
+        <button id="clear-search-btn" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </nav>
+
+    <!-- 3-Column Card Grid -->
+    <main id="accounts-container" class="accounts-grid"></main>
+  </div>
+
+  <!-- Floating Move Bar -->
+  <div id="selection-bar" class="hidden">
+    <div><span id="selected-count-badge">0</span> selected</div>
+    <div style="height: 16px; width: 1px; background: rgba(255,255,255,0.2);"></div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <select id="move-target-select"></select>
+      <button id="move-selected-btn">Move</button>
+    </div>
+    <div style="height: 16px; width: 1px; background: rgba(255,255,255,0.2);"></div>
+    <button id="deselect-all-btn"><i class="fa-solid fa-xmark"></i> Clear</button>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast">
+    <i id="toast-icon" class="fa-solid fa-circle-check" style="color: var(--color-green);"></i>
+    <span id="toast-msg">Action performed</span>
+  </div>
+
+  <script src="./google-photos-albums-manager.js"></script>
+</body>
+</html>
