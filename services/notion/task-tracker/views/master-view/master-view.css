@@ -13,7 +13,7 @@ summary {
 summary::-webkit-details-marker { display: none; }
 
 .chevron-icon {
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   color: var(--text-dim);
   transition: transform 0.2s var(--ease);
   margin-left: auto;
@@ -23,7 +23,9 @@ details[open] > summary .chevron-icon {
   transform: rotate(180deg);
 }
 
-/* STAGE 1 */
+/* =========================================================
+   STAGE 1 (MAIN REFERENCE ACCORDION)
+   ========================================================= */
 .stage1-group {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
@@ -60,82 +62,98 @@ details[open] > summary .chevron-icon {
 .stage1-summary {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
+  gap: 8px;
+  padding: 8px 10px;
   font-size: 0.82rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  min-height: 40px;
+  box-sizing: border-box;
 }
 
 .stage1-badge {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid currentColor;
-  padding: 1.5px 6.5px;
+  padding: 2px 7px;
   border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .stage1-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   box-sizing: border-box;
 }
 
-/* STAGE 2 */
+/* =========================================================
+   STAGE 2 (DATE ACCORDION)
+   ========================================================= */
 .stage2-group {
   background: rgba(56, 189, 248, 0.03);
   border: 1px solid rgba(56, 189, 248, 0.15);
-  border-radius: 8px;
-  padding: 4px;
+  border-radius: 10px;
+  padding: 6px 4px;
   box-sizing: border-box;
+  margin-bottom: 6px;
 }
 
 .stage2-summary {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px;
-  font-size: 0.78rem;
-  font-weight: 700;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-height: 40px;
+  box-sizing: border-box;
   color: var(--c-date-header) !important;
 }
 
 .stage2-date-text {
   color: var(--c-date-header) !important;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .stage2-badge {
   background: rgba(56, 189, 248, 0.12);
   color: var(--c-date-header);
   border: 1px solid var(--c-date-header);
-  padding: 1px 5px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .stage2-content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(56, 189, 248, 0.1);
   box-sizing: border-box;
 }
 
-/* STAGE 3 */
+/* =========================================================
+   STAGE 3 (TIMING / RECURRING ACCORDION)
+   ========================================================= */
 .stage3-group {
-  border-radius: 7px;
-  padding: 4px;
+  border-radius: 10px;
+  padding: 6px 4px;
   background: rgba(0, 0, 0, 0.28);
   box-sizing: border-box;
+  margin-bottom: 6px;
 }
 
 .stage3-theme-recur {
@@ -174,38 +192,45 @@ details[open] > summary .chevron-icon {
 .stage3-summary {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.stage3-badge {
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-}
-
-.stage3-content {
-  margin-top: 4px;
+  min-height: 40px;
   box-sizing: border-box;
 }
 
-/* STAGE 3.5: PRIORITY GROUPS */
+.stage3-badge {
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.stage3-content {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   STAGE 3.5 (PRIORITY GROUPS ACCORDION)
+   ========================================================= */
 .priority-groups-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 6px;
   box-sizing: border-box;
 }
 
 .stage-prio-group {
-  border-radius: 6px;
-  padding: 4px;
+  border-radius: 10px;
+  padding: 6px 4px;
   background: rgba(0, 0, 0, 0.2);
   box-sizing: border-box;
 }
@@ -213,27 +238,32 @@ details[open] > summary .chevron-icon {
 .stage-prio-summary {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 4px;
-  font-size: 0.7rem;
-  font-weight: 700;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  min-height: 40px;
+  box-sizing: border-box;
 }
 
 .jira-prio-icon {
-  font-size: 0.68rem;
+  font-size: 0.78rem;
 }
 
 .stage-prio-badge {
-  padding: 1px 5px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .stage-prio-content {
-  margin-top: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   box-sizing: border-box;
 }
 
@@ -293,11 +323,13 @@ details[open] > summary .chevron-icon {
   border: 1px solid #a1a1aa;
 }
 
-/* STAGE 4 */
+/* =========================================================
+   STAGE 4 (STATUS COLUMNS ACCORDION)
+   ========================================================= */
 .stage4-columns {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -305,7 +337,7 @@ details[open] > summary .chevron-icon {
 .stage4-columns-past-due {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -314,15 +346,15 @@ details[open] > summary .chevron-icon {
   .stage4-columns,
   .stage4-columns-past-due {
     grid-template-columns: 1fr !important;
-    gap: 6px;
+    gap: 8px;
   }
 }
 
 .stage4-col-details {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
-  padding: 4px;
+  border-radius: 10px;
+  padding: 6px 4px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -331,14 +363,15 @@ details[open] > summary .chevron-icon {
 }
 
 .stage4-col-summary {
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 3px 4px;
+  letter-spacing: 0.05em;
+  padding: 8px 10px;
+  min-height: 40px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -360,37 +393,41 @@ details[open] > summary .chevron-icon {
   background: rgba(245, 158, 11, 0.15);
   color: var(--c-prog);
   border: 1px solid var(--c-prog);
-  padding: 1px 4px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .status-badge-todo {
   background: rgba(251, 113, 133, 0.15);
   color: var(--c-todo);
   border: 1px solid var(--c-todo);
-  padding: 1px 4px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .status-badge-done {
   background: rgba(16, 185, 129, 0.15);
   color: var(--c-done);
   border: 1px solid var(--c-done);
-  padding: 1px 4px;
-  border-radius: 4px;
+  padding: 2px 7px;
+  border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .stage4-col-tasks {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
   box-sizing: border-box;
   width: 100%;
   min-width: 0;

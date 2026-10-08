@@ -139,15 +139,36 @@ export function parseTask(page) {
 
   const hasTime = !!(date && date.includes("T"));
 
+  // Strictly isolate custom description and database URL properties
+  let description = "";
+  let customUrl = "";
+
   for (const [key, p] of Object.entries(props)) {
-    if (!schemaProps.person && (p.type === "people" || key.toLowerCase().includes("person"))) schemaProps.person = key;
-    if (!schemaProps.desc && p.type === "rich_text" && (key.toLowerCase().includes("desc") || key.toLowerCase().includes("note"))) schemaProps.desc = key;
-    if (!schemaProps.url && p.type === "url") schemaProps.url = key;
+    if (!schemaProps.person && (p.type === "people" || key.toLowerCase().includes("person"))) {
+      schemaProps.person = key;
+    }
+
+    if (p.type === "rich_text" && (key.toLowerCase().includes("desc") || key.toLowerCase().includes("note"))) {
+      schemaProps.desc = key;
+      if (p.rich_text && p.rich_text.length > 0) {
+        description = p.rich_text.map(t => t.plain_text || t.text?.content || "").join("").trim();
+      }
+    }
+
+    // STRICT CHECK: Type must be "url"
+    if (p.type === "url") {
+      schemaProps.url = key;
+      if (p.url) {
+        customUrl = String(p.url).trim();
+      }
+    }
   }
 
   return {
     id: page.id,
     url: page.url || `https://notion.so/${page.id.replace(/-/g, "")}`,
+    customUrl: customUrl || "",
+    description: description || "",
     title,
     status: rawStatusName || (isDone ? "Done" : "Not Started"),
     isDone,
@@ -157,6 +178,11 @@ export function parseTask(page) {
     hasTime,
     isRecurring,
     statusPropName: schemaProps.status,
+    titlePropName: schemaProps.title,
+    priorityPropName: schemaProps.priority,
+    datePropName: schemaProps.date,
+    descPropName: schemaProps.desc,
+    urlPropName: schemaProps.url,
     lastEdited: page.last_edited_time
   };
 }
