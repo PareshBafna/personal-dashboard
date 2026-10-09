@@ -1,0 +1,22 @@
+<!-- File: services/notion/task-tracker/views/master-view/features/custom-date-update/custom-date-update.html -->
+<!-- Modal markup for changing custom due date and time -->
+
+<div id="customDateModal" class="custom-date-modal-backdrop">
+  <div class="custom-date-card">
+    <div class="custom-date-header">
+      <h4>Select Due Date</h4>
+      <button type="button" id="closeCustomDateModalBtn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="custom-date-body">
+      <input type="date" id="customDateInput" required>
+      <label class="custom-date-time-toggle">
+        <input type="checkbox" id="customDateTimeCheckbox"> Include time
+      </label>
+      <input type="time" id="customTimeInput" style="display: none;">
+    </div>
+    <div class="custom-date-footer">
+      <button type="button" class="custom-date-btn-cancel" id="cancelCustomDateBtn">Cancel</button>
+      <button type="button" class="custom-date-btn-submit" id="saveCustomDateBtn">Save Date</button>
+    </div>
+  </div>
+</div>

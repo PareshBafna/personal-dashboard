@@ -1,9 +1,18 @@
-@import "../common/toast/toast.css";
-@import "../common/task-card/task-card.css";
-@import "./telemetry/telemetry.css";
-@import "./filter-toolbar/filter-toolbar.css";
+/* File: services/notion/task-tracker/task-tracker.css */
+/* Main page layout and CSS bundle aggregating all modular stylesheets */
+
+@import "../common/features/toast/toast.css";
+@import "./common/features/telemetry/telemetry.css";
+@import "./common/features/filter-toolbar/filter-toolbar.css";
+@import "./common/features/task-add/task-add.css";
+@import "./views/master-view/task-card/task-card.css";
 @import "./views/master-view/master-view.css";
-@import "./crud/add-task/add-task.css";
+@import "./views/master-view/features/task-delete/task-delete.css";
+@import "./views/master-view/features/task-update/task-update.css";
+@import "./views/master-view/features/custom-date-update/custom-date-update.css";
+@import "./views/inbox-view/task-card/task-card.css";
+@import "./views/inbox-view/inbox-view.css";
+@import "./views/inbox-view/features/due-date-fix/due-date-fix.css";
 
 :root {
   --bg-deep: #0f1011;
@@ -134,29 +143,4 @@ h1 { font-size: 1.25rem; font-weight: 800; background: linear-gradient(180deg, #
 
 @media (min-width: 640px) {
   body { padding: 20px 24px; }
-}
-
-/* Multi-card grid for Inbox View */
-.inbox-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 12px;
-  width: 100%;
-}
-
-.item-submeta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-}
-
-.item-submeta .task-status-badge {
-  font-size: 0.72rem;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--bg-hover, rgba(255, 255, 255, 0.06));
-  color: var(--text-dim, #a0aec0);
-  border: 1px solid var(--panel-border, rgba(255, 255, 255, 0.08));
 }

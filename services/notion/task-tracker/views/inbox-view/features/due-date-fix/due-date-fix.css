@@ -1,0 +1,14 @@
+/* File: services/notion/task-tracker/views/inbox-view/features/due-date-fix/due-date-fix.css */
+/* Styles for fix-due-date trigger button */
+
+.fix-due-date-card-btn {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+}
+
+.fix-due-date-card-btn:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-color: rgba(239, 68, 68, 0.8) !important;
+  color: #ffffff !important;
+}
