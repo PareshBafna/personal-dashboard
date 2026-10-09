@@ -1,5 +1,5 @@
 // File: services/notion/task-tracker/task-tracker.js
-// Pure view connector and global event delegator
+// Pure view connector and global event delegator for Inbox and Master views
 
 import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.client.js";
 import { updateTelemetry } from "./common/features/telemetry/telemetry.js";
@@ -35,50 +35,15 @@ async function loadFragments() {
 }
 
 function filterTasks(tasks) {
-  const { query, status } = getFilterState();
-  return tasks.filter(t => {
-    if (query && !t.title.toLowerCase().includes(query)) return false;
-    if (status === "todo" && (t.isDone || (t.status || "").toLowerCase().includes("progress"))) return false;
-    if (status === "in-progress" && (t.isDone || !(t.status || "").toLowerCase().includes("progress"))) return false;
-    if (status === "done" && !t.isDone) return false;
-    return true;
-  });
+  const { query } = getFilterState();
+  if (!query) return tasks;
+  return tasks.filter(t => t.title && t.title.toLowerCase().includes(query));
 }
 
 function renderFull(isHardBoot = false) {
   if (!container) return;
   const { status } = getFilterState();
   const filtered = filterTasks(allTasks);
-
-  if (status === "master") {
-    updateTelemetry(filtered);
-    const prevScroll = container.scrollTop;
-
-    if (isHardBoot) {
-      container.innerHTML = renderMasterView(filtered, true);
-      attachDateAccordionSync(container);
-    } else {
-      const currentOpenKeys = new Set();
-      container.querySelectorAll("details").forEach(d => {
-        if (d.open && d.dataset.accordKey) {
-          currentOpenKeys.add(d.dataset.accordKey);
-        }
-      });
-
-      container.innerHTML = renderMasterView(filtered, false);
-
-      container.querySelectorAll("details").forEach(d => {
-        if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
-          d.open = true;
-        }
-      });
-
-      attachDateAccordionSync(container);
-    }
-
-    container.scrollTop = prevScroll;
-    return;
-  }
 
   if (status === "inbox") {
     const inboxList = filtered.filter(isInboxTask);
@@ -108,9 +73,33 @@ function renderFull(isHardBoot = false) {
     return;
   }
 
+  // Default: Master View
   updateTelemetry(filtered);
-  filtered.sort(multiLevelTaskComparator);
-  container.innerHTML = filtered.map(t => renderTaskCard(t, true)).join("");
+  const prevScroll = container.scrollTop;
+
+  if (isHardBoot) {
+    container.innerHTML = renderMasterView(filtered, true);
+    attachDateAccordionSync(container);
+  } else {
+    const currentOpenKeys = new Set();
+    container.querySelectorAll("details").forEach(d => {
+      if (d.open && d.dataset.accordKey) {
+        currentOpenKeys.add(d.dataset.accordKey);
+      }
+    });
+
+    container.innerHTML = renderMasterView(filtered, false);
+
+    container.querySelectorAll("details").forEach(d => {
+      if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
+        d.open = true;
+      }
+    });
+
+    attachDateAccordionSync(container);
+  }
+
+  container.scrollTop = prevScroll;
 }
 
 container.addEventListener("click", (e) => {
