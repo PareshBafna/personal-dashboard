@@ -1,5 +1,6 @@
 // File: services/notion/task-tracker/views/master-view/master-view.js
-// 4-Stage accordion builder connecting localized task cards, in-place DOM updates, custom date modal, duplicate, and update actions
+// 4-Stage accordion builder connecting localized task cards, in-place DOM updates, custom date modal, duplicate, and update actions.
+// Excludes completed tasks from Stage 1, Stage 2, Stage 3, and Priority accordion badges.
 
 import { renderTaskCard, multiLevelTaskComparator } from "./task-card/task-card.js";
 import { initCustomDateModal, openCustomDateModal } from "./features/custom-date-update/custom-date-update.js";
@@ -161,6 +162,12 @@ function getJiraPriorityIcon(prio) {
   return "fa-angles-down";
 }
 
+// Helper: check if task is completed
+function isTaskCompleted(item) {
+  const norm = (item.status || "").toLowerCase();
+  return !!(item.isDone || norm === "done" || norm.includes("complete"));
+}
+
 function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentDueToday, applyDefaults = true) {
   const inProgressList = [];
   const notStartedList = [];
@@ -168,7 +175,7 @@ function renderStatusColumns(tasks, columnClass, keyPrefix, isPastDue, isParentD
 
   for (const item of tasks) {
     const norm = (item.status || "").toLowerCase();
-    if (item.isDone || norm === "done" || norm.includes("complete")) {
+    if (isTaskCompleted(item)) {
       doneList.push(item);
     } else if (norm.includes("progress")) {
       inProgressList.push(item);
@@ -275,13 +282,16 @@ export function renderMasterView(taskList, applyDefaults = true) {
     const s1Map = tree.get(s1Name);
     if (!s1Map || s1Map.size === 0) continue;
 
-    let totalS1Count = 0;
+    // Badge count: Exclude completed tasks
+    let s1ActiveCount = 0;
+    let s1TotalTaskCount = 0;
     for (const dMap of s1Map.values()) {
       for (const arr of dMap.values()) {
-        totalS1Count += arr.length;
+        s1TotalTaskCount += arr.length;
+        s1ActiveCount += arr.filter(t => !isTaskCompleted(t)).length;
       }
     }
-    if (totalS1Count === 0) continue;
+    if (s1TotalTaskCount === 0) continue;
 
     let s1Icon = "fa-calendar-days";
     let s1Class = "s1-pastdue";
@@ -299,7 +309,7 @@ export function renderMasterView(taskList, applyDefaults = true) {
         <summary class="stage1-summary">
           <i class="fa-solid ${s1Icon}"></i>
           <span>${s1Name}</span>
-          <span class="stage1-badge">${totalS1Count}</span>
+          <span class="stage1-badge">${s1ActiveCount}</span>
           <i class="fa-solid fa-chevron-down chevron-icon"></i>
         </summary>
         <div class="stage1-content">
@@ -311,11 +321,14 @@ export function renderMasterView(taskList, applyDefaults = true) {
       const dKey = sortedDates[dIdx];
       const s3Map = s1Map.get(dKey);
 
-      let totalDateCount = 0;
+      // Badge count: Exclude completed tasks
+      let dateActiveCount = 0;
+      let dateTotalCount = 0;
       for (const arr of s3Map.values()) {
-        totalDateCount += arr.length;
+        dateTotalCount += arr.length;
+        dateActiveCount += arr.filter(t => !isTaskCompleted(t)).length;
       }
-      if (totalDateCount === 0) continue;
+      if (dateTotalCount === 0) continue;
 
       const dObj = new Date(`${dKey}T00:00:00Z`);
       const dLabel = dObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
@@ -327,7 +340,7 @@ export function renderMasterView(taskList, applyDefaults = true) {
           <summary class="stage2-summary">
             <i class="fa-regular fa-calendar-check"></i>
             <span class="stage2-date-text">${dLabel}</span>
-            <span class="stage2-badge">${totalDateCount}</span>
+            <span class="stage2-badge">${dateActiveCount}</span>
             <i class="fa-solid fa-chevron-down chevron-icon"></i>
           </summary>
           <div class="stage2-content">
@@ -337,6 +350,8 @@ export function renderMasterView(taskList, applyDefaults = true) {
         const s3Name = STAGE_3_ORDER[s3Idx];
         const s3Tasks = s3Map.get(s3Name);
         if (!s3Tasks || s3Tasks.length === 0) continue;
+
+        const s3ActiveCount = s3Tasks.filter(t => !isTaskCompleted(t)).length;
 
         let s3Icon = "fa-calendar";
         let s3ThemeClass = "stage3-theme-date";
@@ -376,6 +391,7 @@ export function renderMasterView(taskList, applyDefaults = true) {
             const pTasks = prioMap.get(pName);
             if (!pTasks || pTasks.length === 0) continue;
 
+            const prioActiveCount = pTasks.filter(t => !isTaskCompleted(t)).length;
             const pKey = `${s3Key}-prio-${pName.toLowerCase()}`;
             const prioThemeClass = `prio-grp-${pName.toLowerCase()}`;
             const prioColumnsHtml = renderStatusColumns(pTasks, columnClass, pKey, isPastDue, isDueToday, applyDefaults);
@@ -387,7 +403,7 @@ export function renderMasterView(taskList, applyDefaults = true) {
                 <summary class="stage-prio-summary">
                   <i class="fa-solid ${jiraIcon} jira-prio-icon"></i>
                   <span>${pName}</span>
-                  <span class="stage-prio-badge">${pTasks.length}</span>
+                  <span class="stage-prio-badge">${prioActiveCount}</span>
                   <i class="fa-solid fa-chevron-down chevron-icon"></i>
                 </summary>
                 <div class="stage-prio-content">
@@ -409,7 +425,7 @@ export function renderMasterView(taskList, applyDefaults = true) {
             <summary class="stage3-summary">
               <i class="fa-solid ${s3Icon}"></i>
               <span>${s3Name}</span>
-              <span class="stage3-badge">${s3Tasks.length}</span>
+              <span class="stage3-badge">${s3ActiveCount}</span>
               <i class="fa-solid fa-chevron-down chevron-icon"></i>
             </summary>
             <div class="stage3-content">
