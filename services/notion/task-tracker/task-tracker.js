@@ -2,11 +2,12 @@ import { fetchAllTasks, resolvePareshUser, schemaProps } from "../common/api/api
 import { updateTelemetry } from "./telemetry/telemetry.js";
 import { initFilterToolbar, getFilterState } from "./filter-toolbar/filter-toolbar.js";
 import { renderMasterView, attachDateAccordionSync } from "./views/master-view/master-view.js";
-import { renderInboxView } from "./views/inbox-view/inbox-view.js";
+import { renderInboxView, isInboxTask } from "./views/inbox-view/inbox-view.js";
 import { renderTaskCard, multiLevelTaskComparator } from "../common/task-card/task-card.js";
 import { initAddTask } from "./crud/add-task/add-task.js";
 import { updateTaskStatus, openUpdateTaskModal } from "./crud/update-task/update-task.js";
 import { deleteTask } from "./crud/delete-task/delete-task.js";
+import { showToast } from "../common/toast/toast.js";
 
 let allTasks = [];
 let activeTaskForDateModal = null;
@@ -66,7 +67,7 @@ function injectCustomDateModal() {
 
     let finalDateStr = dateVal;
     if (checkbox.checked && timeInput.value) {
-      finalDateStr = `${dateVal}T${timeInput.value}:00.000+05:30`;
+      finalDateStr = `${dateVal}T${timeInput.value}:00+05:30`;
     }
 
     closeModal();
@@ -83,7 +84,7 @@ function openCustomDateModal(task) {
 
   const currentDateStr = task.date || task.formulaDate || "";
   const now = new Date();
-  const defDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const defDate = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
   if (currentDateStr) {
     dateInput.value = currentDateStr.slice(0, 10);
@@ -124,14 +125,13 @@ function renderFull(isHardBoot = false) {
   const filtered = filterTasks(allTasks);
 
   if (status === "master") {
+    updateTelemetry(filtered);
     const prevScroll = container.scrollTop;
 
     if (isHardBoot) {
-      // First boot on page load: Render with default open accordions
       container.innerHTML = renderMasterView(filtered, true);
       attachDateAccordionSync(container);
     } else {
-      // User triggered sync / edit: Capture exactly which keys are open right now
       const currentOpenKeys = new Set();
       container.querySelectorAll("details").forEach(d => {
         if (d.open && d.dataset.accordKey) {
@@ -139,10 +139,8 @@ function renderFull(isHardBoot = false) {
         }
       });
 
-      // Render all closed
       container.innerHTML = renderMasterView(filtered, false);
 
-      // Reopen only the keys user had open
       container.querySelectorAll("details").forEach(d => {
         if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
           d.open = true;
@@ -157,15 +155,38 @@ function renderFull(isHardBoot = false) {
   }
 
   if (status === "inbox") {
-    container.innerHTML = renderInboxView(filtered);
+    const inboxList = filtered.filter(isInboxTask);
+    updateTelemetry(inboxList);
+    const prevScroll = container.scrollTop;
+
+    if (isHardBoot) {
+      container.innerHTML = renderInboxView(inboxList, true);
+    } else {
+      const currentOpenKeys = new Set();
+      container.querySelectorAll("details").forEach(d => {
+        if (d.open && d.dataset.accordKey) {
+          currentOpenKeys.add(d.dataset.accordKey);
+        }
+      });
+
+      container.innerHTML = renderInboxView(inboxList, false);
+
+      container.querySelectorAll("details").forEach(d => {
+        if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
+          d.open = true;
+        }
+      });
+    }
+
+    container.scrollTop = prevScroll;
     return;
   }
 
+  updateTelemetry(filtered);
   filtered.sort(multiLevelTaskComparator);
   container.innerHTML = filtered.map(t => renderTaskCard(t, true)).join("");
 }
 
-// POST endpoint to update task date
 async function updateTaskDueDate(task, newDateString) {
   const prevDate = task.date;
   const prevHasTime = task.hasTime;
@@ -174,15 +195,16 @@ async function updateTaskDueDate(task, newDateString) {
   task.hasTime = !!(newDateString && newDateString.includes("T"));
 
   renderFull(false);
-  updateTelemetry(allTasks);
 
   try {
-    const propName = schemaProps.date || "Due Date";
+    const propName = resolveDueDatePropName(task);
+    const dateObj = newDateString ? { start: newDateString } : null;
+
     const body = {
       pageId: task.id,
       properties: {
         [propName]: {
-          date: newDateString ? { start: newDateString } : null
+          date: dateObj
         }
       }
     };
@@ -199,17 +221,14 @@ async function updateTaskDueDate(task, newDateString) {
     task.date = prevDate;
     task.hasTime = prevHasTime;
     renderFull(false);
-    updateTelemetry(allTasks);
   }
 }
 
-// POST endpoint to update task priority
 async function updateTaskPriority(task, newPriority) {
   const prevPrio = task.priority;
   task.priority = newPriority;
 
   renderFull(false);
-  updateTelemetry(allTasks);
 
   try {
     const propName = schemaProps.priority || "Priority";
@@ -233,7 +252,6 @@ async function updateTaskPriority(task, newPriority) {
     console.error("Failed to update task priority:", err);
     task.priority = prevPrio;
     renderFull(false);
-    updateTelemetry(allTasks);
   }
 }
 
@@ -241,19 +259,147 @@ function setDateTodayOrTomorrow(task, isTomorrow = false) {
   const now = new Date();
   if (isTomorrow) now.setDate(now.getDate() + 1);
 
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  const baseDate = `${y}-${m}-${d}`;
+  const baseDate = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
   let finalDateStr = baseDate;
   const oldDate = task.date || task.formulaDate || "";
   if (oldDate.includes("T")) {
-    const timePart = oldDate.split("T")[1];
-    finalDateStr = `${baseDate}T${timePart}`;
+    const timeMatch = oldDate.match(/T(\d{2}:\d{2}(?::\d{2})?)/);
+    const timePart = timeMatch ? timeMatch[1] : "18:00:00";
+    finalDateStr = `${baseDate}T${timePart}+05:30`;
   }
 
   updateTaskDueDate(task, finalDateStr);
+}
+
+function resolveDueDatePropName(task) {
+  if (task.datePropName) return task.datePropName;
+  if (schemaProps.date) return schemaProps.date;
+  const props = task.properties || {};
+  for (const [key, p] of Object.entries(props)) {
+    if (p.type === "date") return key;
+  }
+  return "Due Date";
+}
+
+function getFormulaDueDateWithoutTz(task) {
+  const props = task.properties || {};
+
+  for (const [key, p] of Object.entries(props)) {
+    const k = key.trim().toLowerCase();
+    if (k === "formula due date w/o tz" || (k.includes("w/o tz") && k.includes("formula"))) {
+      if (p.type === "formula" && p.formula) {
+        if (p.formula.string) return p.formula.string;
+        if (p.formula.date?.start) return p.formula.date.start;
+      }
+      if (p.type === "date" && p.date?.start) return p.date.start;
+      if (p.type === "rollup" && p.rollup?.date?.start) return p.rollup.date.start;
+      if (p.string) return p.string;
+    }
+  }
+
+  if (task.formulaDate && task.formulaDate.trim()) {
+    return task.formulaDate.trim();
+  }
+
+  return "";
+}
+
+function parseFormulaToExactIstIso(rawStr) {
+  if (!rawStr) return null;
+  const s = String(rawStr).trim();
+
+  // Instant with Z or UTC offset: convert to Asia/Kolkata instant with +05:30
+  if (s.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(s)) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const ymd = d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+      const timeStr = d.toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      return `${ymd}T${timeStr}+05:30`;
+    }
+  }
+
+  // Exact ISO format: YYYY-MM-DDTHH:mm(:ss)
+  const isoMatch = s.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (isoMatch) {
+    const ymd = isoMatch[1];
+    const hh = String(isoMatch[2]).padStart(2, "0");
+    const mm = String(isoMatch[3]).padStart(2, "0");
+    const ss = String(isoMatch[4] || "00").padStart(2, "0");
+    return `${ymd}T${hh}:${mm}:${ss}+05:30`;
+  }
+
+  // Date-only: YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return s;
+  }
+
+  // Natural string parsing
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const ymd = d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const hasTime = s.includes(":") || s.toLowerCase().includes("am") || s.toLowerCase().includes("pm");
+    if (hasTime) {
+      const timeStr = d.toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      return `${ymd}T${timeStr}+05:30`;
+    }
+    return ymd;
+  }
+
+  return null;
+}
+
+async function triggerFixDueDate(task, btn) {
+  const rawTargetDate = getFormulaDueDateWithoutTz(task);
+  if (!rawTargetDate) {
+    showToast("No value in 'Formula Due Date w/o TZ'", true);
+    return;
+  }
+
+  const finalDateStr = parseFormulaToExactIstIso(rawTargetDate);
+  if (!finalDateStr) {
+    showToast(`Invalid date format: ${rawTargetDate}`, true);
+    return;
+  }
+
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-rotate spin"></i> Fixing...`;
+
+  try {
+    const propName = resolveDueDatePropName(task);
+
+    // No time_zone sent when offset +05:30 present: fixes Notion 400 error
+    const datePayload = {
+      start: finalDateStr
+    };
+
+    const res = await fetch("/api/notion/update-page", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pageId: task.id,
+        properties: {
+          [propName]: {
+            date: datePayload
+          }
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText);
+    }
+
+    showToast("Due date updated");
+    await syncData(false);
+  } catch (err) {
+    console.error("Fix Due Date error:", err);
+    showToast(`Fix failed: ${err.message.slice(0, 45)}`, true);
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
 }
 
 function updateTaskDomInPlace(task, nextStatus) {
@@ -315,7 +461,7 @@ function updateTaskDomInPlace(task, nextStatus) {
   updateBadge(currentColumn);
   updateBadge(targetColumn);
 
-  updateTelemetry(allTasks);
+  renderFull(false);
 }
 
 function removeTaskDomInPlace(id) {
@@ -338,7 +484,7 @@ function removeTaskDomInPlace(id) {
   }
 
   allTasks = allTasks.filter(t => t.id !== id);
-  updateTelemetry(allTasks);
+  renderFull(false);
 }
 
 container.addEventListener("click", (e) => {
@@ -379,8 +525,9 @@ container.addEventListener("click", (e) => {
   } else if (action === "open-update-modal") {
     openUpdateTaskModal(task, () => {
       renderFull(false);
-      updateTelemetry(allTasks);
     });
+  } else if (action === "fix-due-date") {
+    triggerFixDueDate(task, btn);
   }
 });
 
@@ -390,7 +537,6 @@ async function syncData(isHardBoot = false) {
 
   try {
     allTasks = await fetchAllTasks();
-    updateTelemetry(allTasks);
     renderFull(isHardBoot);
   } catch (err) {
     console.error("Sync error:", err);
@@ -406,5 +552,5 @@ async function syncData(isHardBoot = false) {
   initAddTask(() => syncData(false));
   document.getElementById("refreshBtn").addEventListener("click", () => syncData(false));
   await resolvePareshUser();
-  await syncData(true); // Hard boot: opens default accordions
+  await syncData(true);
 })();

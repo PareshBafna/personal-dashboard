@@ -38,6 +38,38 @@ function extractFormulaValue(p) {
   return "";
 }
 
+function extractMissingDataValues(p) {
+  if (!p) return [];
+
+  if (p.type === "formula" && p.formula) {
+    if (p.formula.type === "string" && p.formula.string) return [p.formula.string.trim()];
+    if (p.formula.type === "array" && Array.isArray(p.formula.array)) {
+      return p.formula.array.map(i => (typeof i === "string" ? i : (i?.string || i?.name || ""))).filter(Boolean);
+    }
+  }
+
+  if (p.type === "rollup" && p.rollup && Array.isArray(p.rollup.array)) {
+    return p.rollup.array.map(i => {
+      if (typeof i === "string") return i;
+      if (i?.formula?.string) return i.formula.string;
+      if (i?.string) return i.string;
+      if (i?.name) return i.name;
+      return "";
+    }).filter(Boolean);
+  }
+
+  if (p.type === "multi_select" && Array.isArray(p.multi_select)) {
+    return p.multi_select.map(item => item.name || "");
+  }
+
+  if (p.type === "rich_text" && Array.isArray(p.rich_text)) {
+    const text = p.rich_text.map(t => t.plain_text || "").join("").trim();
+    return text ? [text] : [];
+  }
+
+  return [];
+}
+
 export function parseTask(page) {
   const props = page.properties || {};
   let title = "Untitled Task";
@@ -92,7 +124,7 @@ export function parseTask(page) {
   let formulaDateWithoutTZ = "";
   for (const [key, p] of Object.entries(props)) {
     const k = key.toLowerCase();
-    if (k.includes("formula due date") || k.includes("w/o tz") || k.includes("without tz")) {
+    if (k.includes("formula due date w/o tz") || k.includes("w/o tz") || k.includes("without tz")) {
       const extracted = extractFormulaValue(p);
       if (extracted && extracted.trim() !== "") {
         formulaDateWithoutTZ = extracted.trim();
@@ -139,9 +171,9 @@ export function parseTask(page) {
 
   const hasTime = !!(date && date.includes("T"));
 
-  // Strictly isolate custom description and database URL properties
   let description = "";
   let customUrl = "";
+  let missingDataValues = [];
 
   for (const [key, p] of Object.entries(props)) {
     if (!schemaProps.person && (p.type === "people" || key.toLowerCase().includes("person"))) {
@@ -155,12 +187,15 @@ export function parseTask(page) {
       }
     }
 
-    // STRICT CHECK: Type must be "url"
     if (p.type === "url") {
       schemaProps.url = key;
       if (p.url) {
         customUrl = String(p.url).trim();
       }
+    }
+
+    if (key.trim().toLowerCase() === "missing data") {
+      missingDataValues = extractMissingDataValues(p);
     }
   }
 
@@ -175,14 +210,18 @@ export function parseTask(page) {
     priority,
     date: date ? String(date).trim() : "",
     formulaDate: formulaDateWithoutTZ ? String(formulaDateWithoutTZ).trim() : "",
+    nativeDate: rawNativeDate ? String(rawNativeDate).trim() : "",
     hasTime,
     isRecurring,
+    missingDataValues,
+    properties: props,
     statusPropName: schemaProps.status,
     titlePropName: schemaProps.title,
     priorityPropName: schemaProps.priority,
     datePropName: schemaProps.date,
     descPropName: schemaProps.desc,
     urlPropName: schemaProps.url,
+    createdTime: page.created_time || props["Created Time"]?.created_time || props["Created time"]?.created_time || "",
     lastEdited: page.last_edited_time
   };
 }
@@ -192,14 +231,17 @@ export function filterTasksRule(taskList) {
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   return taskList.filter(task => {
-    // 1. Drop if no due date (both native and formula date empty)
+    // Keep tasks that have incorrect due date
+    const hasIncorrect = Array.isArray(task.missingDataValues) &&
+      task.missingDataValues.some(val => val.includes("❌ Incorrect Due Date"));
+    if (hasIncorrect && !task.isDone) return true;
+
+    // Normal check
     const hasValidDueDate = !!((task.date && task.date.trim()) || (task.formulaDate && task.formulaDate.trim()));
     if (!hasValidDueDate) return false;
 
-    // 2. Keep incomplete tasks
     if (!task.isDone) return true;
 
-    // 3. For completed tasks: only keep completed today or later
     if (task.date && task.date.length >= 10) return task.date.slice(0, 10) >= todayStr;
     if (task.lastEdited && task.lastEdited.length >= 10) return task.lastEdited.slice(0, 10) >= todayStr;
     return false;
@@ -214,8 +256,7 @@ export async function fetchAllTasks() {
   const now = new Date();
   const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
-  // Notion API filter: Incomplete OR edited today
-  const apiFilter = {
+  const baseFilter = {
     or: [
       {
         property: schemaProps.status || "Status",
@@ -232,6 +273,8 @@ export async function fetchAllTasks() {
     ]
   };
 
+  const apiFilter = baseFilter;
+
   while (hasMore) {
     const payload = {
       databaseId: TASK_DB_ID,
@@ -240,20 +283,15 @@ export async function fetchAllTasks() {
       ...(currentCursor ? { start_cursor: currentCursor } : {})
     };
 
-    let res = await fetch("/api/notion/query-database", {
+    const res = await fetch("/api/notion/query-database", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
-      delete payload.filter;
-      res = await fetch("/api/notion/query-database", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error(await res.text());
+      const err = await res.text();
+      throw new Error(`Notion Query Error: ${err}`);
     }
 
     const data = await res.json();

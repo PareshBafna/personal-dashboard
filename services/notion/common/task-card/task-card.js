@@ -1,165 +1,124 @@
-const PRIORITY_ORDER = ["Critical", "High", "Medium", "Low", "Lowest"];
+import { schemaProps } from "../api/api.client.js";
+
 const PRIORITY_RANK = { critical: 1, high: 2, medium: 3, low: 4, lowest: 5 };
 
-function getJiraPriorityIcon(prio) {
-  const p = (prio || "").toLowerCase();
-  if (p === "critical") return "fa-angles-up";
-  if (p === "high") return "fa-chevron-up";
-  if (p === "medium") return "fa-equals";
-  if (p === "low") return "fa-chevron-down";
-  return "fa-angles-down";
-}
-
 export function formatTaskDate(task) {
-  const str = task.date || task.formulaDate || "";
-  if (!str.trim()) return "No Due Date";
-  const d = new Date(str);
-  let out = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  if (task.hasTime) out += " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  return out;
-}
+  const dStr = task.date || task.formulaDate || "";
+  if (!dStr) return "No Due Date";
 
-export function multiLevelTaskComparator(a, b) {
-  const dateA = a.date || a.formulaDate || "";
-  const dateB = b.date || b.formulaDate || "";
-  if (dateA !== dateB) {
-    if (!dateA) return 1;
-    if (!dateB) return -1;
-    const diff = dateA.localeCompare(dateB);
-    if (diff !== 0) return diff;
+  const isWithTime = task.hasTime || dStr.includes("T");
+  const d = new Date(dStr);
+  if (isNaN(d.getTime())) return dStr;
+
+  const mo = d.toLocaleDateString("en-US", { month: "short" });
+  const day = d.getDate();
+
+  if (isWithTime) {
+    let ho = d.getHours();
+    const mi = String(d.getMinutes()).padStart(2, "0");
+    const ampm = ho >= 12 ? "PM" : "AM";
+    ho = ho % 12 || 12;
+    return `${mo} ${day} ${String(ho).padStart(2, "0")}:${mi} ${ampm}`;
   }
-  const rA = PRIORITY_RANK[(a.priority || "").toLowerCase()] || 3;
-  const rB = PRIORITY_RANK[(b.priority || "").toLowerCase()] || 3;
-  if (rA !== rB) return rA - rB;
-  return (a.title || "").localeCompare(b.title || "");
+
+  return `${mo} ${day}`;
 }
 
-function getDateBadgeColorClass(task) {
-  const rawStr = task.date || task.formulaDate || "";
-  if (!rawStr.trim()) return "date-color-red";
+export function hasIncorrectDueDate(task) {
+  if (!task || !task.properties) return false;
 
-  const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const datePart = rawStr.slice(0, 10);
+  // Never flag completed tasks
+  if (task.isDone || (task.status || "").toLowerCase().trim() === "done") {
+    return false;
+  }
 
-  // If task has time (e.g., Oct 4 04:00 PM)
-  if (task.hasTime && rawStr.includes("T")) {
-    const taskTime = new Date(rawStr).getTime();
-    if (!isNaN(taskTime)) {
-      return taskTime < now.getTime() ? "date-color-red" : "date-color-blue";
+  let missingProp = null;
+  for (const [key, val] of Object.entries(task.properties)) {
+    if (key.trim().toLowerCase() === "missing data") {
+      missingProp = val;
+      break;
     }
   }
 
-  // If task has NO time:
-  // Date strictly before today -> RED (Past due with NO time)
-  // Date today or future -> BLUE (Current due dates with NO time)
-  if (datePart < todayStr) {
-    return "date-color-red";
+  if (!missingProp) return false;
+
+  let val = "";
+  if (missingProp.type === "formula" && missingProp.formula) {
+    val = missingProp.formula.string || "";
+  } else if (missingProp.type === "rollup" && missingProp.rollup) {
+    if (Array.isArray(missingProp.rollup.array)) {
+      val = missingProp.rollup.array
+        .map(i => (typeof i === "string" ? i : (i?.formula?.string || i?.string || "")))
+        .join(" ");
+    }
+  } else if (missingProp.type === "rich_text" && Array.isArray(missingProp.rich_text)) {
+    val = missingProp.rich_text.map(t => t.plain_text || "").join("");
   }
 
-  return "date-color-blue";
+  return val.trim().includes("❌ Incorrect Due Date");
 }
 
-export function renderTaskCard(task, showStatusBadge = false, columnType = "") {
+export function multiLevelTaskComparator(a, b) {
+  const isPastDueA = a.date && a.date.slice(0, 10) < new Date().toISOString().slice(0, 10);
+  const isPastDueB = b.date && b.date.slice(0, 10) < new Date().toISOString().slice(0, 10);
+  if (isPastDueA !== isPastDueB) return isPastDueA ? -1 : 1;
+
+  const rA = PRIORITY_RANK[(a.priority || "").toLowerCase()] || 3;
+  const rB = PRIORITY_RANK[(b.priority || "").toLowerCase()] || 3;
+  if (rA !== rB) return rA - rB;
+
+  return (a.title || "").localeCompare(b.title || "");
+}
+
+export function renderTaskCard(task, showCheckbox = true, overrideCol = null) {
   const currentPrio = task.priority || "Medium";
   const cardPrioClass = `card-${currentPrio.toLowerCase()}`;
+  const isCompleted = overrideCol === "done" ? true : (overrideCol ? false : task.isDone);
+  const isIncorrect = hasIncorrectDueDate(task);
+
   const dateFormatted = formatTaskDate(task);
-  const dateColorClass = getDateBadgeColorClass(task);
-  const normStatus = (task.status || "").toLowerCase().includes("progress") ? "in-progress" : (task.isDone ? "done" : "todo");
-  const isInProgress = !task.isDone && normStatus === "in-progress";
+  const dateClass = isIncorrect ? "date-color-red" : "";
+  const normStatus = (task.status || (isCompleted ? "Done" : "Not Started")).trim();
 
-  const currentContext = columnType || normStatus;
-  let actionBtns = "";
-
-  if (currentContext === "in-progress") {
-    actionBtns = `
-      <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-id="${task.id}" data-target="Not Started"><i class="fa-regular fa-circle-play"></i> Mark Not Started</button>
-      <button type="button" class="status-action-btn btn-to-done" data-action="status" data-id="${task.id}" data-target="Done"><i class="fa-solid fa-circle-check"></i> Mark Completed</button>
-    `;
-  } else if (currentContext === "todo") {
-    actionBtns = `
-      <button type="button" class="status-action-btn btn-to-prog" data-action="status" data-id="${task.id}" data-target="In Progress"><i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress</button>
-      <button type="button" class="status-action-btn btn-to-done" data-action="status" data-id="${task.id}" data-target="Done"><i class="fa-solid fa-circle-check"></i> Mark Completed</button>
-    `;
-  } else if (currentContext === "done") {
-    actionBtns = `
-      <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-id="${task.id}" data-target="Not Started"><i class="fa-regular fa-circle-play"></i> Mark Not Started</button>
-      <button type="button" class="status-action-btn btn-to-prog" data-action="status" data-id="${task.id}" data-target="In Progress"><i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress</button>
+  let actionsHtml = "";
+  if (isIncorrect) {
+    actionsHtml = `
+      <button type="button" class="open-notion-btn fix-due-date-card-btn" data-action="fix-due-date" data-id="${task.id}">
+        <i class="fa-solid fa-wrench"></i>
+        <span>Fix Due Date</span>
+      </button>
     `;
   }
 
-  const priorityBtnsHtml = PRIORITY_ORDER.map(pName => {
-    const isCurrent = currentPrio.toLowerCase() === pName.toLowerCase();
-    const pIcon = getJiraPriorityIcon(pName);
-    const activeClass = isCurrent ? "is-active" : "";
-    return `
-      <button type="button" class="prio-quick-btn prio-btn-${pName.toLowerCase()} ${activeClass}" data-action="set-priority" data-id="${task.id}" data-prio="${pName}">
-        <i class="fa-solid ${pIcon}"></i> ${pName}
-      </button>
-    `;
-  }).join("");
-
   return `
-    <div class="checklist-item ${cardPrioClass} ${task.isDone ? "is-done" : ""} ${isInProgress ? "is-in-progress" : ""}" data-id="${task.id}">
+    <div class="checklist-item ${cardPrioClass} ${isCompleted ? "item-completed" : ""}" data-id="${task.id}">
       <div class="item-text-wrap">
-        <!-- SECTION 1: TASK DATA -->
         <div class="task-info-section">
           <div class="task-info-top-row">
-            <div class="item-title-with-icon">
-              <i class="fa-solid fa-circle-check task-title-icon"></i>
-              <span class="item-title">${task.title}</span>
-            </div>
-            <div class="item-top-right-actions">
-              ${showStatusBadge ? `<span class="task-status-badge">${task.status}</span>` : ""}
-              <button type="button" class="card-delete-btn" data-action="delete" data-id="${task.id}" title="Delete Task">
-                <i class="fa-solid fa-trash"></i>
+            ${showCheckbox ? `
+              <button type="button" class="task-checkbox-btn ${isCompleted ? "checked" : ""}" data-action="toggle" data-id="${task.id}">
+                <i class="fa-solid fa-check"></i>
               </button>
-            </div>
+            ` : `
+              <div class="item-title-with-icon">
+                <i class="fa-regular fa-circle-check task-title-icon"></i>
+              </div>
+            `}
+            <span class="item-title ${isCompleted ? "strikethrough" : ""}">${task.title}</span>
           </div>
           <div class="item-submeta">
-            <span class="date-highlight-badge ${dateColorClass}">
+            <span class="date-highlight-badge ${dateClass}">
               <i class="fa-regular fa-calendar"></i><span>${dateFormatted}</span>
             </span>
+            <span class="task-status-badge">${normStatus}</span>
           </div>
         </div>
 
-        <!-- DIVIDER: TASK DATA VS ACTIONS -->
         <div class="task-card-divider"></div>
 
-        <!-- SECTION 2: TASK ACTIONS -->
         <div class="task-actions-section">
-          <!-- Row 1: Neutral Date Buttons -->
-          <div class="item-date-shortcuts">
-            <button type="button" class="date-quick-btn date-btn-nodue" data-action="set-date-nodue" data-id="${task.id}">
-              <i class="fa-solid fa-calendar-xmark"></i> No Due
-            </button>
-            <button type="button" class="date-quick-btn date-btn-today" data-action="set-date-today" data-id="${task.id}">
-              <i class="fa-regular fa-calendar-check"></i> Today
-            </button>
-            <button type="button" class="date-quick-btn date-btn-tomorrow" data-action="set-date-tomorrow" data-id="${task.id}">
-              <i class="fa-regular fa-calendar-plus"></i> Tomorrow
-            </button>
-            <button type="button" class="date-quick-btn date-btn-custom" data-action="open-date-modal" data-id="${task.id}">
-              <i class="fa-regular fa-calendar-days"></i> Custom
-            </button>
-          </div>
-
-          <!-- Row 2: Priority Buttons -->
-          <div class="item-prio-shortcuts">
-            ${priorityBtnsHtml}
-          </div>
-
-          <!-- Row 3: Status Actions (Full Width) -->
-          <div class="item-status-actions">
-            ${actionBtns}
-          </div>
-
-          <!-- Row 4: Notion & Update Action Buttons -->
           <div class="item-notion-action">
-            <button type="button" class="open-notion-btn update-data-card-btn" data-action="open-update-modal" data-id="${task.id}">
-              <i class="fa-solid fa-pen-to-square"></i>
-              <span>Update Data</span>
-            </button>
+            ${actionsHtml}
             <a href="${task.url}" target="_blank" class="open-notion-btn">
               <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/>
