@@ -1,9 +1,119 @@
-import { renderTaskCard, multiLevelTaskComparator } from "/services/notion/common/task-card/task-card.js";
+// File: services/notion/task-tracker/views/master-view/master-view.js
+// 4-Stage accordion builder connecting localized task cards, in-place DOM updates, custom date modal, and update actions
+
+import { renderTaskCard, multiLevelTaskComparator } from "./task-card/task-card.js";
+import { initCustomDateModal, openCustomDateModal } from "./features/custom-date-update/custom-date-update.js";
+import { updateTaskDueDate, setDateTodayOrTomorrow } from "./features/date-update/date-update.js";
+import { updateTaskPriority } from "./features/priority-update/priority-update.js";
+import { updateTaskStatus } from "./features/status-update/status-update.js";
+import { openUpdateTaskModal } from "./features/task-update/task-update.js";
+import { deleteTask } from "./features/task-delete/task-delete.js";
 
 const TZ = "Asia/Kolkata";
 const HAS_OFFSET = /T.*(Z|[+-]\d{2}:?\d{2})$/;
 
-// Extract true YYYY-MM-DD in Asia/Kolkata
+export async function initMasterViewFeatures(onDateUpdateRequested) {
+  const slot = document.getElementById("customDateModalSlot");
+  if (slot && !slot.innerHTML.trim()) {
+    slot.innerHTML = await (await fetch("./views/master-view/features/custom-date-update/custom-date-update.html")).text();
+    initCustomDateModal(onDateUpdateRequested);
+  }
+}
+
+export { 
+  openCustomDateModal, 
+  updateTaskDueDate, 
+  setDateTodayOrTomorrow, 
+  updateTaskPriority, 
+  updateTaskStatus, 
+  openUpdateTaskModal, 
+  deleteTask 
+};
+
+export function updateMasterTaskDomInPlace(container, task, nextStatus, onFallbackRerender) {
+  const card = container.querySelector(`.checklist-item[data-id="${task.id}"]`);
+  if (!card) return;
+
+  const currentColumn = card.closest(".stage4-col-details");
+  if (!currentColumn) {
+    if (typeof onFallbackRerender === "function") onFallbackRerender();
+    return;
+  }
+
+  const parentColumnsWrap = currentColumn.closest(".stage4-columns, .stage4-columns-past-due");
+  if (!parentColumnsWrap) {
+    if (typeof onFallbackRerender === "function") onFallbackRerender();
+    return;
+  }
+
+  let targetColType = "todo";
+  const sLow = (nextStatus || "").toLowerCase();
+  if (sLow === "done" || sLow === "completed") {
+    targetColType = "done";
+  } else if (sLow.includes("progress")) {
+    targetColType = "in-progress";
+  }
+
+  const targetColumn = parentColumnsWrap.querySelector(`.stage4-col-details[data-col="${targetColType}"]`);
+  if (!targetColumn) {
+    if (typeof onFallbackRerender === "function") onFallbackRerender();
+    return;
+  }
+
+  task.status = nextStatus;
+  task.isDone = targetColType === "done";
+
+  const temp = document.createElement("div");
+  temp.innerHTML = renderTaskCard(task, false, targetColType);
+  const newCard = temp.firstElementChild;
+
+  const targetTasksWrap = targetColumn.querySelector(".stage4-col-tasks");
+  const currentTasksWrap = currentColumn.querySelector(".stage4-col-tasks");
+
+  card.remove();
+  const emptyTargetMsg = targetTasksWrap.querySelector(".empty-col-msg");
+  if (emptyTargetMsg) emptyTargetMsg.remove();
+  targetTasksWrap.appendChild(newCard);
+
+  if (currentTasksWrap.children.length === 0) {
+    currentTasksWrap.innerHTML = `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`;
+  }
+
+  const updateBadge = (col) => {
+    if (!col) return;
+    const badge = col.querySelector(".badge-count");
+    if (badge) {
+      badge.textContent = col.querySelectorAll(".checklist-item").length;
+    }
+  };
+  updateBadge(currentColumn);
+  updateBadge(targetColumn);
+
+  if (typeof onFallbackRerender === "function") onFallbackRerender();
+}
+
+export function removeMasterTaskDomInPlace(container, id, onFallbackRerender) {
+  const card = container.querySelector(`.checklist-item[data-id="${id}"]`);
+  if (!card) return;
+
+  const currentColumn = card.closest(".stage4-col-details");
+  const tasksWrap = card.parentElement;
+  card.remove();
+
+  if (tasksWrap && tasksWrap.children.length === 0) {
+    tasksWrap.innerHTML = `<div class="empty-col-msg" style="font-size: 0.7rem; color: var(--text-dim); padding: 8px 4px; text-align: center;">None</div>`;
+  }
+
+  if (currentColumn) {
+    const badge = currentColumn.querySelector(".badge-count");
+    if (badge) {
+      badge.textContent = currentColumn.querySelectorAll(".checklist-item").length;
+    }
+  }
+
+  if (typeof onFallbackRerender === "function") onFallbackRerender();
+}
+
 function toLocalDateString(rawVal) {
   if (!rawVal) return "";
   const s = String(rawVal).trim();

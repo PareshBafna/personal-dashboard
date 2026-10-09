@@ -1,0 +1,20 @@
+<!-- File: services/notion/task-tracker/common/features/filter-toolbar/filter-toolbar.html -->
+<!-- Markup for search input and view switcher pills -->
+
+<nav class="toolbar">
+  <div class="search-box">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="text" id="searchInput" placeholder="Search checklist..." autocomplete="off">
+    <button id="clearSearchBtn" class="clear-btn hidden"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="filter-pills-wrap">
+    <div class="filter-pills" id="statusFilterPills">
+      <button class="pill" data-status="inbox">Inbox</button>
+      <button class="pill active" data-status="master">Master</button>
+      <button class="pill" data-status="all">All</button>
+      <button class="pill" data-status="todo">Not Started</button>
+      <button class="pill" data-status="in-progress">In Progress</button>
+      <button class="pill" data-status="done">Completed (Today+)</button>
+    </div>
+  </div>
+</nav>
