@@ -15,6 +15,7 @@ import {
   updateTaskStatus, 
   openUpdateTaskModal, 
   deleteTask, 
+  duplicateTask,
   updateMasterTaskDomInPlace, 
   removeMasterTaskDomInPlace 
 } from "./views/master-view/master-view.js";
@@ -134,6 +135,16 @@ container.addEventListener("click", (e) => {
     deleteTask(id, () => {
       allTasks = allTasks.filter(t => t.id !== id);
       removeMasterTaskDomInPlace(container, id, () => renderFull(false));
+    });
+  } else if (action === "duplicate") {
+    duplicateTask(task, async (createdTask) => {
+      await syncData(false);
+      const targetToOpen = allTasks.find(t => t.id === createdTask?.id) || createdTask;
+      if (targetToOpen) {
+        openUpdateTaskModal(targetToOpen, () => {
+          renderFull(false);
+        });
+      }
     });
   } else if (action === "set-date-nodue") {
     updateTaskDueDate(task, null, () => renderFull(false));

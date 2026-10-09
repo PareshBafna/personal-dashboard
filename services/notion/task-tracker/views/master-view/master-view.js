@@ -1,5 +1,5 @@
 // File: services/notion/task-tracker/views/master-view/master-view.js
-// 4-Stage accordion builder connecting localized task cards, in-place DOM updates, custom date modal, and update actions
+// 4-Stage accordion builder connecting localized task cards, in-place DOM updates, custom date modal, duplicate, and update actions
 
 import { renderTaskCard, multiLevelTaskComparator } from "./task-card/task-card.js";
 import { initCustomDateModal, openCustomDateModal } from "./features/custom-date-update/custom-date-update.js";
@@ -8,6 +8,7 @@ import { updateTaskPriority } from "./features/priority-update/priority-update.j
 import { updateTaskStatus } from "./features/status-update/status-update.js";
 import { openUpdateTaskModal } from "./features/task-update/task-update.js";
 import { deleteTask } from "./features/task-delete/task-delete.js";
+import { duplicateTask } from "./features/task-duplicate/task-duplicate.js";
 
 const TZ = "Asia/Kolkata";
 const HAS_OFFSET = /T.*(Z|[+-]\d{2}:?\d{2})$/;
@@ -27,7 +28,8 @@ export {
   updateTaskPriority, 
   updateTaskStatus, 
   openUpdateTaskModal, 
-  deleteTask 
+  deleteTask,
+  duplicateTask
 };
 
 export function updateMasterTaskDomInPlace(container, task, nextStatus, onFallbackRerender) {

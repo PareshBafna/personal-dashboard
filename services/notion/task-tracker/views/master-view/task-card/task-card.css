@@ -208,6 +208,7 @@
   min-width: 0;
 }
 
+/* Row 1: 4 Columns Date Grid */
 .item-date-shortcuts {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -254,6 +255,7 @@
   color: #ffffff;
 }
 
+/* Row 2: 5 Columns Priority Grid */
 .item-prio-shortcuts {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -330,28 +332,25 @@
   font-weight: 700;
 }
 
+/* Row 3: 2 Status Buttons */
 .item-status-actions {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   width: 100%;
   box-sizing: border-box;
 }
 
 .status-action-btn {
-  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 8px 10px;
   min-height: 36px;
   font-size: 0.74rem;
   font-weight: 600;
-  color: var(--text-muted);
   cursor: pointer;
   white-space: nowrap;
   min-width: 0;
@@ -363,60 +362,58 @@
   font-size: 0.8rem;
 }
 
-.status-action-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-}
-
 .btn-to-prog {
   color: #f59e0b !important;
   background: rgba(245, 158, 11, 0.1) !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
 }
 
 .btn-to-prog:hover {
   background: rgba(245, 158, 11, 0.22) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
 }
 
 .btn-to-todo {
   color: #93c5fd !important;
   background: rgba(147, 197, 253, 0.1) !important;
-  border-color: rgba(147, 197, 253, 0.3) !important;
+  border: 1px solid rgba(147, 197, 253, 0.3) !important;
 }
 
 .btn-to-todo:hover {
   background: rgba(147, 197, 253, 0.22) !important;
+  border-color: rgba(147, 197, 253, 0.5) !important;
 }
 
 .btn-to-done {
   color: #10b981 !important;
   background: rgba(16, 185, 129, 0.1) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
 }
 
 .btn-to-done:hover {
   background: rgba(16, 185, 129, 0.22) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
 }
 
+/* Row 4: Update, Duplicate & Notion Action Buttons (3 Columns) */
 .item-notion-action {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   width: 100%;
   box-sizing: border-box;
 }
 
 .open-notion-btn {
-  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: auto;
+  gap: 6px;
+  width: 100%;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 8px 6px;
   min-height: 36px;
   font-size: 0.74rem;
   font-weight: 700;
@@ -426,6 +423,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .open-notion-btn:hover {
@@ -436,8 +434,8 @@
 }
 
 .open-notion-btn .notion-icon-svg {
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
   stroke: #ffffff;
 }
@@ -460,5 +458,27 @@
 }
 
 .update-data-card-btn:hover i {
+  color: #ffffff !important;
+}
+
+/* Duplicate Task Button Style */
+.duplicate-card-btn {
+  background: rgba(168, 85, 247, 0.08) !important;
+  border: 1px solid rgba(168, 85, 247, 0.25) !important;
+  color: #c084fc !important;
+}
+
+.duplicate-card-btn:hover {
+  background: rgba(168, 85, 247, 0.2) !important;
+  border-color: rgba(168, 85, 247, 0.55) !important;
+  color: #ffffff !important;
+}
+
+.duplicate-card-btn i {
+  font-size: 0.8rem;
+  color: #c084fc !important;
+}
+
+.duplicate-card-btn:hover i {
   color: #ffffff !important;
 }

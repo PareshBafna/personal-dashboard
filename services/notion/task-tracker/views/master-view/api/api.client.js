@@ -157,21 +157,7 @@ export function parseTask(page) {
     }
   }
 
-  let date = "";
-  if (isRecurring && formulaDateWithoutTZ) {
-    if (!formulaDateWithoutTZ.includes("T") && rawNativeDate && rawNativeDate.includes("T")) {
-      const timePart = rawNativeDate.split("T")[1];
-      const formulaDatePart = formulaDateWithoutTZ.slice(0, 10);
-      date = `${formulaDatePart}T${timePart}`;
-    } else {
-      date = formulaDateWithoutTZ;
-    }
-  } else if (rawNativeDate) {
-    date = rawNativeDate;
-  }
-
-  if (!date && formulaDateWithoutTZ) date = formulaDateWithoutTZ;
-
+  let date = rawNativeDate || formulaDateWithoutTZ || "";
   const hasTime = !!(date && date.includes("T"));
 
   let description = "";
