@@ -2,7 +2,7 @@ import { fetchAllTasks, resolvePareshUser, schemaProps } from "../common/api/api
 import { updateTelemetry } from "./telemetry/telemetry.js";
 import { initFilterToolbar, getFilterState } from "./filter-toolbar/filter-toolbar.js";
 import { renderMasterView, attachDateAccordionSync } from "./views/master-view/master-view.js";
-import { renderInboxView, isInboxTask, computeExpected, getFormulaDueRaw, toFormulaStamp, getDueRaw, toLocalDateString } from "./views/inbox-view/inbox-view.js";
+import { renderInboxView, isInboxTask, computeExpected, getFormulaDueRaw, toFormulaStamp } from "./views/inbox-view/inbox-view.js";
 import { renderTaskCard, multiLevelTaskComparator } from "../common/task-card/task-card.js";
 import { initAddTask } from "./crud/add-task/add-task.js";
 import { updateTaskStatus, openUpdateTaskModal } from "./crud/update-task/update-task.js";
@@ -282,27 +282,32 @@ function resolveDueDatePropName(task) {
   return "Due Date";
 }
 
-// Preserve current Due Date day, apply correct IST target time!
+// Convert Claude's expected stamp to Notion-accepted ISO with +05:30
 function getResolvedExpectedIstIso(task) {
-  const dueRaw = getDueRaw(task);
-  const curDay = toLocalDateString(dueRaw); // Keeps original calendar date YYYY-MM-DD
-  if (!curDay) return null;
-
   const exp = computeExpected(task);
-  let targetStamp = exp && exp.istStamp ? exp.istStamp : toFormulaStamp(getFormulaDueRaw(task));
+  let targetStamp = "";
+
+  if (exp && exp.modelOk && exp.istStamp) {
+    targetStamp = exp.istStamp;
+  } else {
+    targetStamp = toFormulaStamp(getFormulaDueRaw(task));
+  }
 
   if (!targetStamp) return null;
 
-  // Extract HH:mm:ss
-  const m = targetStamp.match(/(\d{2}:\d{2}(?::\d{2})?)/);
+  const m = targetStamp.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2})?)/);
   if (m) {
-    let timePart = m[1];
+    const datePart = m[1];
+    let timePart = m[2];
     if (timePart.length === 5) timePart += ":00";
-    // Lock to curDay, NEVER yesterday!
-    return `${curDay}T${timePart}+05:30`;
+    return `${datePart}T${timePart}+05:30`;
   }
 
-  return curDay;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(targetStamp)) {
+    return targetStamp;
+  }
+
+  return null;
 }
 
 async function triggerFixDueDate(task, btn) {

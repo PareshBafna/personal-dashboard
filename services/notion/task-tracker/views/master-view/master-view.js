@@ -1,14 +1,30 @@
 import { renderTaskCard, multiLevelTaskComparator } from "/services/notion/common/task-card/task-card.js";
 
+const TZ = "Asia/Kolkata";
+const HAS_OFFSET = /T.*(Z|[+-]\d{2}:?\d{2})$/;
+
+// Extract true YYYY-MM-DD in Asia/Kolkata
+function toLocalDateString(rawVal) {
+  if (!rawVal) return "";
+  const s = String(rawVal).trim();
+  if (HAS_OFFSET.test(s)) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d.toLocaleDateString("en-CA", { timeZone: TZ });
+  }
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : "";
+}
+
 function getStage1Bucket(taskDate) {
   if (!taskDate) return null;
-  const dOnly = taskDate.slice(0, 10);
+  const dOnly = toLocalDateString(taskDate);
+  if (!dOnly) return null;
+
   const now = new Date();
-  const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const today = fmt(now);
-  const tom = new Date(now);
-  tom.setDate(tom.getDate() + 1);
-  const tomorrow = fmt(tom);
+  const today = now.toLocaleDateString("en-CA", { timeZone: TZ });
+
+  const tom = new Date(now.getTime() + 86400000);
+  const tomorrow = tom.toLocaleDateString("en-CA", { timeZone: TZ });
 
   if (dOnly < today) return "Past Due";
   if (dOnly === today) return "Due Today";
@@ -123,7 +139,9 @@ export function renderMasterView(taskList, applyDefaults = true) {
     const s1 = getStage1Bucket(targetDate);
     if (!s1 || !tree.has(s1)) continue;
 
-    const s2Date = targetDate.slice(0, 10);
+    const s2Date = toLocalDateString(targetDate);
+    if (!s2Date) continue;
+
     const s1Map = tree.get(s1);
 
     if (!s1Map.has(s2Date)) {
@@ -143,7 +161,7 @@ export function renderMasterView(taskList, applyDefaults = true) {
   for (let i = 0; i < STAGE_1_ORDER.length; i++) {
     const s1Name = STAGE_1_ORDER[i];
     const s1Map = tree.get(s1Name);
-    if (s1Map.size === 0) continue;
+    if (!s1Map || s1Map.size === 0) continue;
 
     let totalS1Count = 0;
     for (const dMap of s1Map.values()) {
@@ -187,8 +205,8 @@ export function renderMasterView(taskList, applyDefaults = true) {
       }
       if (totalDateCount === 0) continue;
 
-      const dObj = new Date(dKey);
-      const dLabel = dObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      const dObj = new Date(`${dKey}T00:00:00Z`);
+      const dLabel = dObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
       const s2Key = `s2-${s1Name.replace(/\s+/g, "_")}-${dKey}`;
       const s2OpenAttr = (applyDefaults && isDueToday) ? "open" : "";
 
@@ -304,7 +322,6 @@ export function attachDateAccordionSync(container) {
     const summary = stage2.querySelector(":scope > summary");
     if (!summary) return;
     summary.addEventListener("click", () => {
-      // click fires before native toggle: open === false means about to open
       if (stage2.open) return;
       stage2.querySelectorAll(".stage3-group").forEach(s3 => { s3.open = true; });
       stage2.querySelectorAll(".stage-prio-group").forEach(sp => { sp.open = true; });
