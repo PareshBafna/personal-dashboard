@@ -6,7 +6,7 @@ const TZ = "Asia/Kolkata";
 const HAS_OFFSET = /T.*(Z|[+-]\d{2}:?\d{2})$/;
 
 // Real due date = native date-type prop named like "Due Date". Not the formula, not other date props.
-function getDueRaw(task) {
+export function getDueRaw(task) {
   const props = task.properties || {};
   let best = null;
   for (const [key, p] of Object.entries(props)) {
@@ -19,7 +19,7 @@ function getDueRaw(task) {
 }
 
 // String with offset/Z = real instant -> convert to IST. Floating/date-only -> read text.
-function toLocalDateString(rawVal) {
+export function toLocalDateString(rawVal) {
   if (!rawVal) return "";
   const s = String(rawVal).trim();
   if (HAS_OFFSET.test(s)) {
@@ -30,7 +30,7 @@ function toLocalDateString(rawVal) {
   return m ? m[1] : "";
 }
 
-function toWallTime(rawVal) {
+export function toWallTime(rawVal) {
   if (!rawVal) return "";
   const s = String(rawVal).trim();
   if (!s.includes("T")) return "";
@@ -64,10 +64,10 @@ function getStage1Bucket(taskDate) {
   const dOnly = toLocalDateString(taskDate);
 
   const now = new Date();
-  const today = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const today = now.toLocaleDateString("en-CA", { timeZone: TZ });
 
   const tom = new Date(now.getTime() + 86400000);
-  const tomorrow = tom.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const tomorrow = tom.toLocaleDateString("en-CA", { timeZone: TZ });
 
   if (dOnly < today) return "Past Due";
   if (dOnly === today) return "Due Today";
@@ -81,7 +81,7 @@ const IST_FMT = new Intl.DateTimeFormat("en-CA", {
 });
 
 // Same as Notion formatDate(x, "YYYY-MM-DD HH:mm:ss"), in IST.
-function toIstStamp(rawVal) {
+export function toIstStamp(rawVal) {
   if (!rawVal) return "";
   const s = String(rawVal).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return `${s} 00:00:00`;
@@ -99,7 +99,7 @@ function toIstStamp(rawVal) {
 
 // Formula "w/o TZ" comes from API as UTC ("+00:00") but its clock text is the real IST wall clock.
 // So read clock text, ignore offset.
-function toFormulaStamp(rawVal) {
+export function toFormulaStamp(rawVal) {
   if (!rawVal) return "";
   const s = String(rawVal).trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return `${s} 00:00:00`;
@@ -110,7 +110,7 @@ function toFormulaStamp(rawVal) {
 const FORMULA_PROP_NAME = "formula due date w/o tz";
 
 // Read ONLY the property named "Formula Due Date w/o TZ". No other formula, no fallback.
-function getFormulaDueRaw(task) {
+export function getFormulaDueRaw(task) {
   const props = task.properties || {};
   for (const [key, p] of Object.entries(props)) {
     if (key.trim().toLowerCase() !== FORMULA_PROP_NAME) continue;
@@ -136,41 +136,42 @@ function getNumProp(task, name) {
   return null;
 }
 
-function fmtIstStamp(d) {
-  const o = {};
-  IST_FMT.formatToParts(d).forEach(x => { o[x.type] = x.value; });
-  return `${o.year}-${o.month}-${o.day} ${o.hour}:${o.minute}:${o.second}`;
-}
-
-// Notion API evaluates formulas in UTC, Notion UI in IST. Same formula, different day.
-// "Formula Due Date w/o TZ" = (date of [Due Date - Due Hours - Due Minutes]) + Due Hours:Due Minutes.
-// Recompute it in IST (what UI shows). utcStamp = what API would return; used to verify model vs real API value.
-function computeExpected(task) {
+// Keep EXACT calendar date of Due Date, only apply Due Hours and Due Minutes!
+export function computeExpected(task) {
   const dueRaw = getDueRaw(task);
   const H = getNumProp(task, "due hours");
   const M = getNumProp(task, "due minutes");
-  if (!dueRaw || H == null || M == null) return null;
+
+  // If no hours/minutes property, fallback to formula
+  if (!dueRaw) return null;
+
   const dueStamp = toIstStamp(dueRaw);
   if (!dueStamp) return null;
 
-  const dueInstant = new Date(dueStamp.replace(" ", "T") + "+05:30");
-  const offsetMs = (H * 60 + M) * 60000;
-  const base = new Date(dueInstant.getTime() - offsetMs);
+  const calDate = dueStamp.slice(0, 10); // Exact YYYY-MM-DD in IST
 
-  const istDate = base.toLocaleDateString("en-CA", { timeZone: TZ });
-  const istStamp = fmtIstStamp(new Date(Date.parse(`${istDate}T00:00:00+05:30`) + offsetMs));
-
-  const utcDate = base.toISOString().slice(0, 10);
-  const utcStamp = new Date(Date.parse(`${utcDate}T00:00:00Z`) + offsetMs).toISOString().slice(0, 19).replace("T", " ");
+  let istStamp = "";
+  if (H != null && M != null) {
+    const hh = String(H).padStart(2, "0");
+    const mm = String(M).padStart(2, "0");
+    istStamp = `${calDate} ${hh}:${mm}:00`;
+  } else {
+    // If no due hours/minutes props, use formula stamp on current date
+    const f = toFormulaStamp(getFormulaDueRaw(task));
+    if (f && f.length >= 19) {
+      istStamp = `${calDate} ${f.slice(11, 19)}`;
+    } else {
+      istStamp = f;
+    }
+  }
 
   const apiStamp = toFormulaStamp(getFormulaDueRaw(task));
-  return { istStamp, utcStamp, apiStamp, modelOk: !!apiStamp && apiStamp === utcStamp };
+  return { istStamp, apiStamp };
 }
 
 // Mirrors Notion "Missing Data" formula, "❌ Incorrect Due Date" branch only:
 // Created Time >= 2026-06-01 AND formula date not empty AND Due Date not empty
 // AND formatDate(formula) != formatDate(Due Date). Done tasks excluded.
-// Formula value = IST recompute when it reproduces API value, else raw API value.
 export function isInboxTask(task) {
   if (!task) return false;
   if (task.isDone || (task.status || "").toLowerCase().trim() === "done") return false;
@@ -182,11 +183,9 @@ export function isInboxTask(task) {
   if (!dueRaw) return false;
 
   const exp = computeExpected(task);
-  let fStamp = "";
-  if (exp && exp.modelOk) fStamp = exp.istStamp;
-  else fStamp = toFormulaStamp(getFormulaDueRaw(task));
-
+  let fStamp = (exp && exp.istStamp) ? exp.istStamp : toFormulaStamp(getFormulaDueRaw(task));
   const dStamp = toIstStamp(dueRaw);
+
   if (!fStamp || !dStamp) return false;
 
   return fStamp !== dStamp;

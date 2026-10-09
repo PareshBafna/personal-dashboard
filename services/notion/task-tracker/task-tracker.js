@@ -2,7 +2,7 @@ import { fetchAllTasks, resolvePareshUser, schemaProps } from "../common/api/api
 import { updateTelemetry } from "./telemetry/telemetry.js";
 import { initFilterToolbar, getFilterState } from "./filter-toolbar/filter-toolbar.js";
 import { renderMasterView, attachDateAccordionSync } from "./views/master-view/master-view.js";
-import { renderInboxView, isInboxTask } from "./views/inbox-view/inbox-view.js";
+import { renderInboxView, isInboxTask, computeExpected, getFormulaDueRaw, toFormulaStamp, getDueRaw, toLocalDateString } from "./views/inbox-view/inbox-view.js";
 import { renderTaskCard, multiLevelTaskComparator } from "../common/task-card/task-card.js";
 import { initAddTask } from "./crud/add-task/add-task.js";
 import { updateTaskStatus, openUpdateTaskModal } from "./crud/update-task/update-task.js";
@@ -282,83 +282,33 @@ function resolveDueDatePropName(task) {
   return "Due Date";
 }
 
-function getFormulaDueDateWithoutTz(task) {
-  const props = task.properties || {};
+// Preserve current Due Date day, apply correct IST target time!
+function getResolvedExpectedIstIso(task) {
+  const dueRaw = getDueRaw(task);
+  const curDay = toLocalDateString(dueRaw); // Keeps original calendar date YYYY-MM-DD
+  if (!curDay) return null;
 
-  for (const [key, p] of Object.entries(props)) {
-    const k = key.trim().toLowerCase();
-    if (k === "formula due date w/o tz" || (k.includes("w/o tz") && k.includes("formula"))) {
-      if (p.type === "formula" && p.formula) {
-        if (p.formula.string) return p.formula.string;
-        if (p.formula.date?.start) return p.formula.date.start;
-      }
-      if (p.type === "date" && p.date?.start) return p.date.start;
-      if (p.type === "rollup" && p.rollup?.date?.start) return p.rollup.date.start;
-      if (p.string) return p.string;
-    }
+  const exp = computeExpected(task);
+  let targetStamp = exp && exp.istStamp ? exp.istStamp : toFormulaStamp(getFormulaDueRaw(task));
+
+  if (!targetStamp) return null;
+
+  // Extract HH:mm:ss
+  const m = targetStamp.match(/(\d{2}:\d{2}(?::\d{2})?)/);
+  if (m) {
+    let timePart = m[1];
+    if (timePart.length === 5) timePart += ":00";
+    // Lock to curDay, NEVER yesterday!
+    return `${curDay}T${timePart}+05:30`;
   }
 
-  if (task.formulaDate && task.formulaDate.trim()) {
-    return task.formulaDate.trim();
-  }
-
-  return "";
-}
-
-function parseFormulaToExactIstIso(rawStr) {
-  if (!rawStr) return null;
-  const s = String(rawStr).trim();
-
-  // Instant with Z or UTC offset: convert to Asia/Kolkata instant with +05:30
-  if (s.endsWith("Z") || /[+-]\d{2}:?\d{2}$/.test(s)) {
-    const d = new Date(s);
-    if (!isNaN(d.getTime())) {
-      const ymd = d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-      const timeStr = d.toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      return `${ymd}T${timeStr}+05:30`;
-    }
-  }
-
-  // Exact ISO format: YYYY-MM-DDTHH:mm(:ss)
-  const isoMatch = s.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/);
-  if (isoMatch) {
-    const ymd = isoMatch[1];
-    const hh = String(isoMatch[2]).padStart(2, "0");
-    const mm = String(isoMatch[3]).padStart(2, "0");
-    const ss = String(isoMatch[4] || "00").padStart(2, "0");
-    return `${ymd}T${hh}:${mm}:${ss}+05:30`;
-  }
-
-  // Date-only: YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-    return s;
-  }
-
-  // Natural string parsing
-  const d = new Date(s);
-  if (!isNaN(d.getTime())) {
-    const ymd = d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-    const hasTime = s.includes(":") || s.toLowerCase().includes("am") || s.toLowerCase().includes("pm");
-    if (hasTime) {
-      const timeStr = d.toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      return `${ymd}T${timeStr}+05:30`;
-    }
-    return ymd;
-  }
-
-  return null;
+  return curDay;
 }
 
 async function triggerFixDueDate(task, btn) {
-  const rawTargetDate = getFormulaDueDateWithoutTz(task);
-  if (!rawTargetDate) {
-    showToast("No value in 'Formula Due Date w/o TZ'", true);
-    return;
-  }
-
-  const finalDateStr = parseFormulaToExactIstIso(rawTargetDate);
+  const finalDateStr = getResolvedExpectedIstIso(task);
   if (!finalDateStr) {
-    showToast(`Invalid date format: ${rawTargetDate}`, true);
+    showToast("Could not compute expected due date", true);
     return;
   }
 
@@ -369,11 +319,6 @@ async function triggerFixDueDate(task, btn) {
   try {
     const propName = resolveDueDatePropName(task);
 
-    // No time_zone sent when offset +05:30 present: fixes Notion 400 error
-    const datePayload = {
-      start: finalDateStr
-    };
-
     const res = await fetch("/api/notion/update-page", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -381,7 +326,9 @@ async function triggerFixDueDate(task, btn) {
         pageId: task.id,
         properties: {
           [propName]: {
-            date: datePayload
+            date: {
+              start: finalDateStr
+            }
           }
         }
       })
