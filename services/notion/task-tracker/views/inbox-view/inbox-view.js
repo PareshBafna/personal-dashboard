@@ -108,7 +108,6 @@ function toFormulaStamp(rawVal) {
 }
 
 const FORMULA_PROP_NAME = "formula due date w/o tz";
-let warnedNoFormulaProp = false;
 
 // Read ONLY the property named "Formula Due Date w/o TZ". No other formula, no fallback.
 function getFormulaDueRaw(task) {
@@ -120,10 +119,6 @@ function getFormulaDueRaw(task) {
     if (f.type === "date") return (f.date && f.date.start) ? String(f.date.start).trim() : "";
     if (f.type === "string") return f.string ? String(f.string).trim() : "";
     return "";
-  }
-  if (!warnedNoFormulaProp) {
-    warnedNoFormulaProp = true;
-    console.warn('Property "Formula Due Date w/o TZ" not found. Props on task:', Object.keys(props));
   }
   return "";
 }
@@ -269,26 +264,6 @@ export function renderInboxView(inboxTasks, applyDefaults = true) {
       </div>
     `;
   }
-
-  console.table(inboxTasks.map(t => ({
-    title: t.title,
-    missingData: (t.missingDataValues && t.missingDataValues.length) ? t.missingDataValues.join(" | ") : "(empty)",
-    formulaProps: Object.entries(t.properties || {})
-      .filter(([, p]) => p && p.type === "formula" && p.formula)
-      .map(([k, p]) => `${k} => ${p.formula.type}: ${(p.formula.date && p.formula.date.start) || p.formula.string || p.formula.number || p.formula.boolean || ""}`)
-      .join(" || "),
-    expectedRaw: JSON.stringify(Object.entries(t.properties || {}).filter(([k]) => k.trim().toLowerCase() === FORMULA_PROP_NAME).map(([, p]) => p && p.formula)[0] || null),
-    dueRaw: JSON.stringify(Object.entries(t.properties || {}).filter(([k]) => k.trim().toLowerCase() === "due date").map(([, p]) => p && p.date)[0] || null),
-    currentDue: getDueRaw(t),
-    expectedDue: getFormulaDueRaw(t),
-    currentStamp: toIstStamp(getDueRaw(t)),
-    dueHours: getNumProp(t, "due hours"),
-    dueMinutes: getNumProp(t, "due minutes"),
-    apiStamp: (computeExpected(t) || {}).apiStamp,
-    modelUtcStamp: (computeExpected(t) || {}).utcStamp,
-    modelOk: (computeExpected(t) || {}).modelOk,
-    expectedStamp: (computeExpected(t) || {}).istStamp
-  })));
 
   const STAGE_1_ORDER = ["Past Due", "Due Today", "Due Tomorrow", "Future Due", "No Due Date"];
 
