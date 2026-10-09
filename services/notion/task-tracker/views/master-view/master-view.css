@@ -1,4 +1,6 @@
-/* Accordions Core */
+/* File: services/notion/task-tracker/views/master-view/master-view.css */
+/* 4-stage cascading accordion system and status column grid styles */
+
 details {
   width: 100%;
   border-radius: 10px;
@@ -23,9 +25,6 @@ details[open] > summary .chevron-icon {
   transform: rotate(180deg);
 }
 
-/* =========================================================
-   STAGE 1 (MAIN REFERENCE ACCORDION)
-   ========================================================= */
 .stage1-group {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
@@ -92,9 +91,6 @@ details[open] > summary .chevron-icon {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   STAGE 2 (DATE ACCORDION)
-   ========================================================= */
 .stage2-group {
   background: rgba(56, 189, 248, 0.03);
   border: 1px solid rgba(56, 189, 248, 0.15);
@@ -145,9 +141,6 @@ details[open] > summary .chevron-icon {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   STAGE 3 (TIMING / RECURRING ACCORDION)
-   ========================================================= */
 .stage3-group {
   border-radius: 10px;
   padding: 6px 4px;
@@ -217,9 +210,6 @@ details[open] > summary .chevron-icon {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   STAGE 3.5 (PRIORITY GROUPS ACCORDION)
-   ========================================================= */
 .priority-groups-container {
   display: flex;
   flex-direction: column;
@@ -267,7 +257,6 @@ details[open] > summary .chevron-icon {
   box-sizing: border-box;
 }
 
-/* Priority Themes */
 .prio-grp-critical {
   border: 1px solid rgba(239, 68, 68, 0.25);
   background: linear-gradient(180deg, rgba(239, 68, 68, 0.05) 0%, rgba(0, 0, 0, 0.25) 100%);
@@ -323,9 +312,6 @@ details[open] > summary .chevron-icon {
   border: 1px solid #a1a1aa;
 }
 
-/* =========================================================
-   STAGE 4 (STATUS COLUMNS ACCORDION)
-   ========================================================= */
 .stage4-columns {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -431,5 +417,5 @@ details[open] > summary .chevron-icon {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding-bottom: 40px; /* Space for + Task floating button */
+  padding-bottom: 40px;
 }

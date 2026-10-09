@@ -1,0 +1,19 @@
+/* File: services/notion/task-tracker/common/features/filter-toolbar/filter-toolbar.css */
+/* Styles for global task searching and status/view filter pills */
+
+.toolbar { display: flex; flex-direction: column; gap: 8px; width: 100%; flex-shrink: 0; }
+.search-box { display: flex; align-items: center; gap: 8px; background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 0 12px; height: 38px; border-radius: 10px; width: 100%; color: var(--text-muted); }
+.search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 0.85rem; width: 100%; }
+.clear-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; }
+.clear-btn.hidden { display: none; }
+.filter-pills-wrap { width: 100%; overflow-x: auto; scrollbar-width: none; }
+.filter-pills-wrap::-webkit-scrollbar { display: none; }
+.filter-pills { display: inline-flex; gap: 4px; background: rgba(255, 255, 255, 0.03); padding: 3px; border-radius: 10px; border: 1px solid var(--panel-border); min-width: 100%; }
+.pill { flex: 1 1 auto; background: transparent; border: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 600; padding: 6px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap; text-align: center; }
+.pill.active { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+@media (min-width: 640px) {
+  .toolbar { flex-direction: row; }
+  .search-box { max-width: 320px; }
+  .filter-pills-wrap, .filter-pills { width: auto; }
+}

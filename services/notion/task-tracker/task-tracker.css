@@ -1,9 +1,18 @@
-@import "../common/toast/toast.css";
-@import "../common/task-card/task-card.css";
-@import "./telemetry/telemetry.css";
-@import "./filter-toolbar/filter-toolbar.css";
+/* File: services/notion/task-tracker/task-tracker.css */
+/* Main page layout and CSS bundle aggregating all modular stylesheets */
+
+@import "../common/features/toast/toast.css";
+@import "./common/features/telemetry/telemetry.css";
+@import "./common/features/filter-toolbar/filter-toolbar.css";
+@import "./common/features/task-add/task-add.css";
+@import "./views/master-view/task-card/task-card.css";
 @import "./views/master-view/master-view.css";
-@import "./crud/add-task/add-task.css";
+@import "./views/master-view/features/task-delete/task-delete.css";
+@import "./views/master-view/features/task-update/task-update.css";
+@import "./views/master-view/features/custom-date-update/custom-date-update.css";
+@import "./views/inbox-view/task-card/task-card.css";
+@import "./views/inbox-view/inbox-view.css";
+@import "./views/inbox-view/features/due-date-fix/due-date-fix.css";
 
 :root {
   --bg-deep: #0f1011;
