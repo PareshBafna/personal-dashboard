@@ -243,6 +243,7 @@ export async function fetchAllTasks() {
   const now = new Date();
   const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
+  // Query not-done tasks OR recently edited tasks
   const baseFilter = {
     or: [
       {
