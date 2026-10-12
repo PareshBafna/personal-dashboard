@@ -1,6 +1,4 @@
-/* File: services/notion/task-tracker/common/features/telemetry/telemetry.css */
-/* Visual styling for single-line task metrics panel */
-
+/* File: services/notion/task-tracker/views/inbox-view/features/telemetry/telemetry.css */
 .master-panel {
   width: 100%;
   background: var(--panel-bg);

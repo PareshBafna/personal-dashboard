@@ -1,5 +1,4 @@
-// File: services/notion/task-tracker/common/features/telemetry/telemetry.js
-// Recalculates and updates telemetry counters in real-time
+// File: services/notion/task-tracker/views/inbox-view/features/telemetry/telemetry.js
 
 export function updateTelemetry(tasks) {
   const total = tasks.length;
