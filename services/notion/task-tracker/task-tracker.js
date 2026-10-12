@@ -1,5 +1,4 @@
 // File: services/notion/task-tracker/task-tracker.js
-// Pure view connector and global event delegator for Inbox and Master views
 
 import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.client.js";
 import { fetchInboxTasks } from "./views/inbox-view/api/api.client.js";
@@ -34,7 +33,7 @@ async function loadFragments() {
   document.getElementById("telemetrySlot").innerHTML = await (await fetch("./common/features/telemetry/telemetry.html")).text();
   document.getElementById("toolbarSlot").innerHTML = await (await fetch("./common/features/filter-toolbar/filter-toolbar.html")).text();
   document.getElementById("addTaskSlot").innerHTML = await (await fetch("./common/features/task-add/task-add.html")).text();
-  await initMasterViewFeatures((task, dateStr) => updateTaskDueDate(task, dateStr, () => syncData(false)));
+  await initMasterViewFeatures((task, dateStr) => updateTaskDueDate(task, dateStr, () => renderFull(false)));
 }
 
 function filterByQuery(tasks) {
@@ -132,19 +131,19 @@ container.addEventListener("click", (e) => {
 
   if (action === "toggle") {
     const next = task.isDone ? "Not Started" : "Done";
-    updateTaskStatus(task, next, async () => {
-      await syncData(false);
+    updateTaskStatus(task, next, () => {
+      updateMasterTaskDomInPlace(container, task, next, () => renderFull(false));
     });
   } else if (action === "status") {
     const targetStatus = btn.dataset.target;
-    updateTaskStatus(task, targetStatus, async () => {
-      await syncData(false);
+    updateTaskStatus(task, targetStatus, () => {
+      updateMasterTaskDomInPlace(container, task, targetStatus, () => renderFull(false));
     });
   } else if (action === "delete") {
-    deleteTask(id, async () => {
+    deleteTask(id, () => {
       allMasterTasks = allMasterTasks.filter(t => t.id !== id);
       allInboxTasks = allInboxTasks.filter(t => t.id !== id);
-      await syncData(false);
+      removeMasterTaskDomInPlace(container, id, () => renderFull(false));
     });
   } else if (action === "duplicate") {
     duplicateTask(task, async (createdTask) => {
@@ -152,30 +151,31 @@ container.addEventListener("click", (e) => {
       const targetToOpen = allMasterTasks.find(t => t.id === createdTask?.id) || allInboxTasks.find(t => t.id === createdTask?.id) || createdTask;
       if (targetToOpen) {
         openUpdateTaskModal(targetToOpen, () => {
-          syncData(false);
+          renderFull(false);
         });
       }
     });
   } else if (action === "set-date-nodue") {
-    updateTaskDueDate(task, null, () => syncData(false));
+    updateTaskDueDate(task, null, () => renderFull(false));
   } else if (action === "set-date-today") {
-    setDateTodayOrTomorrow(task, false, () => syncData(false));
+    setDateTodayOrTomorrow(task, false, () => renderFull(false));
   } else if (action === "set-date-tomorrow") {
-    setDateTodayOrTomorrow(task, true, () => syncData(false));
+    setDateTodayOrTomorrow(task, true, () => renderFull(false));
   } else if (action === "open-date-modal") {
     openCustomDateModal(task);
   } else if (action === "set-priority") {
     const newPrio = btn.dataset.prio;
     if (newPrio && newPrio !== task.priority) {
-      updateTaskPriority(task, newPrio, () => syncData(false));
+      updateTaskPriority(task, newPrio, () => renderFull(false));
     }
   } else if (action === "open-update-modal") {
     openUpdateTaskModal(task, () => {
-      syncData(false);
+      renderFull(false);
     });
   } else if (action === "fix-due-date") {
     triggerFixDueDate(task, btn, async () => {
-      await syncData(false);
+      allInboxTasks = await fetchInboxTasks();
+      renderFull(false);
     });
   }
 });
