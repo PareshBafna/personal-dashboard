@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import googleRoutes from "./pages/google/google-common/google.service.js";
 import megaRoutes from "./pages/mega/mega.service.js";
-import notionRoutes from "./services/notion/common/api/api.backend.js";
+import notionRoutes from "./services/notion/task-tracker/views/master-view/api/api.backend.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

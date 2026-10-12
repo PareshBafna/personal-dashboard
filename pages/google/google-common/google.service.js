@@ -1,6 +1,6 @@
 import express from "express";
 import https from "node:https";
-import { GOOGLE_CREDS } from "./google.credentials.js";
+import { GOOGLE_CREDS } from "../google-credentials/google.credentials.js";
 
 const router = express.Router();
 
