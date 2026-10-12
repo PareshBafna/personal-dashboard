@@ -3,7 +3,8 @@
 
 import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.client.js";
 import { fetchInboxTasks } from "./views/inbox-view/api/api.client.js";
-import { updateTelemetry } from "./views/inbox-view/features/telemetry/telemetry.js";
+import { updateMasterTelemetry } from "./views/master-view/features/telemetry/telemetry.js";
+import { updateTelemetry as updateInboxTelemetry } from "./views/inbox-view/features/telemetry/telemetry.js";
 import { initFilterToolbar, getFilterState } from "./common/features/filter-toolbar/filter-toolbar.js";
 import { 
   renderMasterView, 
@@ -31,7 +32,7 @@ let isInboxLoaded = false;
 const container = document.getElementById("tasksContainer");
 
 async function loadFragments() {
-  document.getElementById("telemetrySlot").innerHTML = await (await fetch("./views/inbox-view/features/telemetry/telemetry.html")).text();
+  document.getElementById("telemetrySlot").innerHTML = await (await fetch("./views/master-view/features/telemetry/telemetry.html")).text();
   document.getElementById("toolbarSlot").innerHTML = await (await fetch("./common/features/filter-toolbar/filter-toolbar.html")).text();
   document.getElementById("addTaskSlot").innerHTML = await (await fetch("./common/features/task-add/task-add.html")).text();
   await initMasterViewFeatures((task, dateStr) => updateTaskDueDate(task, dateStr, () => renderFull(false)));
@@ -43,7 +44,6 @@ function filterByQuery(tasks) {
   return tasks.filter(t => t.title && t.title.toLowerCase().includes(query));
 }
 
-// When tabs change, render with hardboot true to auto-expand default toggles
 async function handleTabSwitch() {
   const { status } = getFilterState();
   if (status === "inbox" && !isInboxLoaded) {
@@ -58,7 +58,6 @@ async function handleTabSwitch() {
     allInboxTasks = await fetchInboxTasks();
     isInboxLoaded = true;
   }
-  // Hard boot renders fresh structure and auto-expands default accordions
   renderFull(true);
 }
 
@@ -68,7 +67,7 @@ function renderFull(isHardBoot = false) {
 
   if (status === "inbox") {
     const filteredInbox = filterByQuery(allInboxTasks).filter(isInboxTask);
-    updateTelemetry(filteredInbox);
+    updateInboxTelemetry(filteredInbox);
     const prevScroll = container.scrollTop;
 
     if (isHardBoot) {
@@ -96,7 +95,7 @@ function renderFull(isHardBoot = false) {
 
   // Master View
   const filteredMaster = filterByQuery(allMasterTasks);
-  updateTelemetry(filteredMaster);
+  updateMasterTelemetry(filteredMaster);
   const prevScroll = container.scrollTop;
 
   if (isHardBoot) {
