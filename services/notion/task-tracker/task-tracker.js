@@ -1,7 +1,7 @@
 // File: services/notion/task-tracker/task-tracker.js
-// Pure view connector and global event delegator for Inbox and Master views
 
 import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.client.js";
+import { fetchInboxTasks } from "./views/inbox-view/api/api.client.js";
 import { updateTelemetry } from "./common/features/telemetry/telemetry.js";
 import { initFilterToolbar, getFilterState } from "./common/features/filter-toolbar/filter-toolbar.js";
 import { 
@@ -24,7 +24,9 @@ import { renderInboxView, isInboxTask } from "./views/inbox-view/inbox-view.js";
 import { triggerFixDueDate } from "./views/inbox-view/features/due-date-fix/due-date-fix.js";
 import { initTaskAdd } from "./common/features/task-add/task-add.js";
 
-let allTasks = [];
+let allMasterTasks = [];
+let allInboxTasks = [];
+let isInboxLoaded = false;
 const container = document.getElementById("tasksContainer");
 
 async function loadFragments() {
@@ -34,24 +36,40 @@ async function loadFragments() {
   await initMasterViewFeatures((task, dateStr) => updateTaskDueDate(task, dateStr, () => renderFull(false)));
 }
 
-function filterTasks(tasks) {
+function filterByQuery(tasks) {
   const { query } = getFilterState();
   if (!query) return tasks;
   return tasks.filter(t => t.title && t.title.toLowerCase().includes(query));
 }
 
+async function handleTabSwitch() {
+  const { status } = getFilterState();
+  if (status === "inbox" && !isInboxLoaded) {
+    if (container) {
+      container.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; padding: 60px; color: var(--text-dim); gap: 12px;">
+          <i class="fa-solid fa-rotate spin" style="font-size: 1.5rem;"></i>
+          <span>Loading Inbox tasks...</span>
+        </div>
+      `;
+    }
+    allInboxTasks = await fetchInboxTasks();
+    isInboxLoaded = true;
+  }
+  renderFull(false);
+}
+
 function renderFull(isHardBoot = false) {
   if (!container) return;
   const { status } = getFilterState();
-  const filtered = filterTasks(allTasks);
 
   if (status === "inbox") {
-    const inboxList = filtered.filter(isInboxTask);
-    updateTelemetry(inboxList);
+    const filteredInbox = filterByQuery(allInboxTasks).filter(isInboxTask);
+    updateTelemetry(filteredInbox);
     const prevScroll = container.scrollTop;
 
     if (isHardBoot) {
-      container.innerHTML = renderInboxView(inboxList, true);
+      container.innerHTML = renderInboxView(filteredInbox, true);
     } else {
       const currentOpenKeys = new Set();
       container.querySelectorAll("details").forEach(d => {
@@ -60,7 +78,7 @@ function renderFull(isHardBoot = false) {
         }
       });
 
-      container.innerHTML = renderInboxView(inboxList, false);
+      container.innerHTML = renderInboxView(filteredInbox, false);
 
       container.querySelectorAll("details").forEach(d => {
         if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
@@ -73,12 +91,13 @@ function renderFull(isHardBoot = false) {
     return;
   }
 
-  // Default: Master View
-  updateTelemetry(filtered);
+  // Master View
+  const filteredMaster = filterByQuery(allMasterTasks);
+  updateTelemetry(filteredMaster);
   const prevScroll = container.scrollTop;
 
   if (isHardBoot) {
-    container.innerHTML = renderMasterView(filtered, true);
+    container.innerHTML = renderMasterView(filteredMaster, true);
     attachDateAccordionSync(container);
   } else {
     const currentOpenKeys = new Set();
@@ -88,7 +107,7 @@ function renderFull(isHardBoot = false) {
       }
     });
 
-    container.innerHTML = renderMasterView(filtered, false);
+    container.innerHTML = renderMasterView(filteredMaster, false);
 
     container.querySelectorAll("details").forEach(d => {
       if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
@@ -107,7 +126,7 @@ container.addEventListener("click", (e) => {
   if (!btn) return;
   const id = btn.dataset.id;
   const action = btn.dataset.action;
-  const task = allTasks.find(t => t.id === id);
+  const task = allMasterTasks.find(t => t.id === id) || allInboxTasks.find(t => t.id === id);
   if (!task) return;
 
   if (action === "toggle") {
@@ -122,13 +141,14 @@ container.addEventListener("click", (e) => {
     });
   } else if (action === "delete") {
     deleteTask(id, () => {
-      allTasks = allTasks.filter(t => t.id !== id);
+      allMasterTasks = allMasterTasks.filter(t => t.id !== id);
+      allInboxTasks = allInboxTasks.filter(t => t.id !== id);
       removeMasterTaskDomInPlace(container, id, () => renderFull(false));
     });
   } else if (action === "duplicate") {
     duplicateTask(task, async (createdTask) => {
       await syncData(false);
-      const targetToOpen = allTasks.find(t => t.id === createdTask?.id) || createdTask;
+      const targetToOpen = allMasterTasks.find(t => t.id === createdTask?.id) || allInboxTasks.find(t => t.id === createdTask?.id) || createdTask;
       if (targetToOpen) {
         openUpdateTaskModal(targetToOpen, () => {
           renderFull(false);
@@ -154,7 +174,8 @@ container.addEventListener("click", (e) => {
     });
   } else if (action === "fix-due-date") {
     triggerFixDueDate(task, btn, async () => {
-      await syncData(false);
+      allInboxTasks = await fetchInboxTasks();
+      renderFull(false);
     });
   }
 });
@@ -164,7 +185,13 @@ async function syncData(isHardBoot = false) {
   if (refBtn) refBtn.classList.add("spinning");
 
   try {
-    allTasks = await fetchAllTasks();
+    const { status } = getFilterState();
+    if (status === "inbox") {
+      allInboxTasks = await fetchInboxTasks();
+      isInboxLoaded = true;
+    } else {
+      allMasterTasks = await fetchAllTasks();
+    }
     renderFull(isHardBoot);
   } catch (err) {
     console.error("Sync error:", err);
@@ -175,7 +202,7 @@ async function syncData(isHardBoot = false) {
 
 (async () => {
   await loadFragments();
-  initFilterToolbar(() => renderFull(false));
+  initFilterToolbar(() => handleTabSwitch());
   initTaskAdd(() => syncData(false));
   document.getElementById("refreshBtn").addEventListener("click", () => syncData(false));
   await resolvePareshUser();

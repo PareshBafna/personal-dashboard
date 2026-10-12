@@ -1,5 +1,5 @@
 // File: services/notion/task-tracker/views/inbox-view/features/due-date-fix/due-date-fix.js
-// Resolves expected due dates and patches Notion records
+// Resolves expected due dates and patches Notion records without IST date rollback
 
 import { showToast } from "../../../../../common/features/toast/toast.js";
 import { computeExpected, getFormulaDueRaw, toFormulaStamp } from "../../inbox-view.js";
@@ -13,24 +13,26 @@ function resolveDueDatePropName(task) {
   return "Due Date";
 }
 
+// Convert target stamp directly to IST ISO 8601: YYYY-MM-DDTHH:mm:ss+05:30
 export function getResolvedExpectedIstIso(task) {
   const exp = computeExpected(task);
   let targetStamp = "";
 
-  if (exp && exp.modelOk && exp.istStamp) {
+  if (exp && exp.istStamp) {
     targetStamp = exp.istStamp;
   } else {
-    targetStamp = toFormulaStamp(getFormulaDueRaw(task));
+    const fRaw = getFormulaDueRaw(task);
+    targetStamp = toFormulaStamp(fRaw);
   }
 
   if (!targetStamp) return null;
 
-  const m = targetStamp.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2})?)/);
+  const m = targetStamp.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2})(?::(\d{2}))?)?/);
   if (m) {
     const datePart = m[1];
-    let timePart = m[2];
-    if (timePart.length === 5) timePart += ":00";
-    return `${datePart}T${timePart}+05:30`;
+    const timePart = m[2] || "00:00";
+    const secPart = m[3] || "00";
+    return `${datePart}T${timePart}:${secPart}+05:30`;
   }
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(targetStamp)) {

@@ -1,0 +1,139 @@
+<!-- File: services/notion/notion.html -->
+<!-- Mobile-style hub homepage for Notion services with bottom navigation bar -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>Notion Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./notion.css">
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <div class="hub-wrapper">
+    <header class="hub-header">
+      <div class="brand">
+        <a href="../../index.html" class="back-link" title="Back to Root">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/>
+            <path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2"/>
+          </svg>
+        </div>
+        <div>
+          <h1 id="tabTitle">Pages</h1>
+        </div>
+      </div>
+    </header>
+
+    <main id="contentContainer" class="hub-content">
+      <!-- 1. TODAY TAB -->
+      <section id="tabToday" class="hub-tab-panel">
+        <div class="empty-placeholder">
+          <i class="fa-solid fa-calendar-day"></i>
+          <h3>Today's Agenda</h3>
+          <p>Tasks scheduled for today will appear here.</p>
+        </div>
+      </section>
+
+      <!-- 2. UPCOMING TAB -->
+      <section id="tabUpcoming" class="hub-tab-panel">
+        <div class="empty-placeholder">
+          <i class="fa-solid fa-calendar-week"></i>
+          <h3>Upcoming Schedule</h3>
+          <p>Future events and due items will show here.</p>
+        </div>
+      </section>
+
+      <!-- 3. ALL TAB -->
+      <section id="tabAll" class="hub-tab-panel">
+        <div class="empty-placeholder">
+          <i class="fa-solid fa-layer-group"></i>
+          <h3>All Records</h3>
+          <p>Comprehensive overview of Notion database entries.</p>
+        </div>
+      </section>
+
+      <!-- 4. SEARCH TAB -->
+      <section id="tabSearch" class="hub-tab-panel">
+        <div class="search-input-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="hubSearchInput" placeholder="Search workspace..." autocomplete="off">
+        </div>
+        <div class="empty-placeholder" style="margin-top: 20px;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <h3>Search Notion</h3>
+          <p>Type keywords to search across connected databases.</p>
+        </div>
+      </section>
+
+      <!-- 5. LIST TAB (ACTIVE BY DEFAULT) -->
+      <section id="tabList" class="hub-tab-panel active">
+        <div class="pages-grid">
+          <!-- Page 1: Dashboard -->
+          <a href="./dashboard/dashboard.html" class="page-card">
+            <div class="page-card-icon icon-dashboard">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="page-card-info">
+              <h3>Dashboard</h3>
+              <p>Analytics, metrics overview, and quick stats.</p>
+            </div>
+            <i class="fa-solid fa-chevron-right chevron-link"></i>
+          </a>
+
+          <!-- Page 2: Task Tracker -->
+          <a href="./task-tracker/task-tracker.html" class="page-card">
+            <div class="page-card-icon icon-tracker">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="page-card-info">
+              <h3>Task Tracker</h3>
+              <p>Master View, Inbox validation, and real-time task manager.</p>
+            </div>
+            <i class="fa-solid fa-chevron-right chevron-link"></i>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <button type="button" class="nav-item" data-tab="today">
+        <i class="fa-solid fa-calendar-day"></i>
+        <span>Today</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="upcoming">
+        <i class="fa-solid fa-calendar-week"></i>
+        <span>Upcoming</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="all">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>All</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Search</span>
+      </button>
+
+      <button type="button" class="nav-item active" data-tab="list">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>List</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module" src="./notion.js"></script>
+</body>
+</html>
