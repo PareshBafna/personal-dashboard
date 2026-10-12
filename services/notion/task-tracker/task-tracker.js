@@ -1,4 +1,5 @@
 // File: services/notion/task-tracker/task-tracker.js
+// Pure view connector and global event delegator for Inbox and Master views
 
 import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.client.js";
 import { fetchInboxTasks } from "./views/inbox-view/api/api.client.js";
@@ -42,6 +43,7 @@ function filterByQuery(tasks) {
   return tasks.filter(t => t.title && t.title.toLowerCase().includes(query));
 }
 
+// When tabs change, render with hardboot true to auto-expand default toggles
 async function handleTabSwitch() {
   const { status } = getFilterState();
   if (status === "inbox" && !isInboxLoaded) {
@@ -56,7 +58,8 @@ async function handleTabSwitch() {
     allInboxTasks = await fetchInboxTasks();
     isInboxLoaded = true;
   }
-  renderFull(false);
+  // Hard boot renders fresh structure and auto-expands default accordions
+  renderFull(true);
 }
 
 function renderFull(isHardBoot = false) {
