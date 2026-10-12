@@ -18,8 +18,12 @@ function prepareDuplicateProperties(task) {
     "last_edited_by"
   ]);
 
+  let priorityKey = null;
+
   for (const [key, prop] of Object.entries(originalProps)) {
     if (!prop || readOnlyTypes.has(prop.type)) continue;
+
+    const kLower = key.trim().toLowerCase();
 
     if (prop.type === "title") {
       const origTitle = task.title || "Untitled Task";
@@ -30,12 +34,22 @@ function prepareDuplicateProperties(task) {
     }
 
     if (prop.type === "status") {
-      cleanProps[key] = { status: { name: prop.status?.name || "Not Started" } };
+      if (kLower === "priority") {
+        priorityKey = key;
+        const prioVal = task.priority || prop.status?.name || "Medium";
+        cleanProps[key] = { status: { name: prioVal } };
+      } else {
+        cleanProps[key] = { status: { name: prop.status?.name || "Not Started" } };
+      }
       continue;
     }
 
     if (prop.type === "select") {
-      if (prop.select?.name) {
+      if (kLower === "priority") {
+        priorityKey = key;
+        const prioVal = task.priority || prop.select?.name || "Medium";
+        cleanProps[key] = { select: { name: prioVal } };
+      } else if (prop.select?.name) {
         cleanProps[key] = { select: { name: prop.select.name } };
       }
       continue;
@@ -51,11 +65,12 @@ function prepareDuplicateProperties(task) {
     }
 
     if (prop.type === "date") {
-      if (prop.date?.start) {
+      const startVal = prop.date?.start || task.nativeDate || task.date;
+      if (startVal) {
         cleanProps[key] = {
           date: {
-            start: prop.date.start,
-            ...(prop.date.end ? { end: prop.date.end } : {})
+            start: startVal,
+            ...(prop.date?.end ? { end: prop.date.end } : {})
           }
         };
       }
@@ -105,6 +120,11 @@ function prepareDuplicateProperties(task) {
       if (prop.phone_number) cleanProps[key] = { phone_number: prop.phone_number };
       continue;
     }
+  }
+
+  // Ensure Priority is preserved if task has explicit priority property
+  if (!priorityKey && task.priority) {
+    cleanProps["Priority"] = { select: { name: task.priority } };
   }
 
   return cleanProps;
