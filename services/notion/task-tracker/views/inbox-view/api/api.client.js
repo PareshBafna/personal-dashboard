@@ -1,5 +1,4 @@
 // File: services/notion/task-tracker/views/inbox-view/api/api.client.js
-// Client API layer: queries, schemas, and parser isolated for Inbox View
 
 export const TASK_DB_ID = "1a4fa716-53ca-8189-a7b5-d1e9b9ae9a5b";
 
@@ -9,51 +8,6 @@ export const schemaProps = {
   priority: "Priority",
   date: "Due Date"
 };
-
-function extractFormulaValue(p) {
-  if (!p) return "";
-  if (p.type === "formula" && p.formula) {
-    if (p.formula.type === "date" && p.formula.date?.start) return p.formula.date.start;
-    if (p.formula.type === "string" && p.formula.string) return p.formula.string;
-    if (p.formula.date?.start) return p.formula.date.start;
-    if (p.formula.string) return p.formula.string;
-  }
-  if (p.type === "date" && p.date?.start) return p.date.start;
-  if (p.type === "rollup" && p.rollup?.date?.start) return p.rollup.date.start;
-  return "";
-}
-
-function extractMissingDataValues(p) {
-  if (!p) return [];
-
-  if (p.type === "formula" && p.formula) {
-    if (p.formula.type === "string" && p.formula.string) return [p.formula.string.trim()];
-    if (p.formula.type === "array" && Array.isArray(p.formula.array)) {
-      return p.formula.array.map(i => (typeof i === "string" ? i : (i?.string || i?.name || ""))).filter(Boolean);
-    }
-  }
-
-  if (p.type === "rollup" && p.rollup && Array.isArray(p.rollup.array)) {
-    return p.rollup.array.map(i => {
-      if (typeof i === "string") return i;
-      if (i?.formula?.string) return i.formula.string;
-      if (i?.string) return i.string;
-      if (i?.name) return i.name;
-      return "";
-    }).filter(Boolean);
-  }
-
-  if (p.type === "multi_select" && Array.isArray(p.multi_select)) {
-    return p.multi_select.map(item => item.name || "");
-  }
-
-  if (p.type === "rich_text" && Array.isArray(p.rich_text)) {
-    const text = p.rich_text.map(t => t.plain_text || "").join("").trim();
-    return text ? [text] : [];
-  }
-
-  return [];
-}
 
 export function parseInboxTask(page) {
   const props = page.properties || {};
@@ -96,18 +50,6 @@ export function parseInboxTask(page) {
     }
   }
 
-  let formulaDateWithoutTZ = "";
-  for (const [key, p] of Object.entries(props)) {
-    const k = key.toLowerCase();
-    if (k.includes("formula due date w/o tz") || k.includes("w/o tz") || k.includes("without tz")) {
-      const extracted = extractFormulaValue(p);
-      if (extracted && extracted.trim() !== "") {
-        formulaDateWithoutTZ = extracted.trim();
-        break;
-      }
-    }
-  }
-
   let rawNativeDate = "";
   for (const [key, p] of Object.entries(props)) {
     if (p.type === "date" && p.date?.start) {
@@ -117,15 +59,22 @@ export function parseInboxTask(page) {
     }
   }
 
-  let date = rawNativeDate || formulaDateWithoutTZ;
-  const hasTime = !!(date && date.includes("T"));
-
-  let missingDataValues = [];
+  // Exact check from Notion property:
+  let missingDataString = "";
   for (const [key, p] of Object.entries(props)) {
     if (key.trim().toLowerCase() === "missing data") {
-      missingDataValues = extractMissingDataValues(p);
+      if (p.type === "formula" && p.formula?.string) {
+        missingDataString = p.formula.string.trim();
+      } else {
+        const raw = JSON.stringify(p || {});
+        if (raw.includes("Incorrect Due Date")) missingDataString = "❌ Incorrect Due Date";
+        else if (raw.includes("Empty Due Date")) missingDataString = "❌ Empty Due Date";
+      }
+      break;
     }
   }
+
+  const createdTime = page.created_time || props["Created Time"]?.created_time || props["Created time"]?.created_time || "";
 
   return {
     id: page.id,
@@ -134,14 +83,36 @@ export function parseInboxTask(page) {
     status: rawStatusName || (isDone ? "Done" : "Not Started"),
     isDone,
     priority,
-    date: date ? String(date).trim() : "",
-    formulaDate: formulaDateWithoutTZ ? String(formulaDateWithoutTZ).trim() : "",
+    date: rawNativeDate ? String(rawNativeDate).trim() : "",
     nativeDate: rawNativeDate ? String(rawNativeDate).trim() : "",
-    hasTime,
-    missingDataValues,
+    hasTime: !!(rawNativeDate && rawNativeDate.includes("T")),
+    createdTime,
+    missingDataString,
     properties: props,
     datePropName: schemaProps.date,
-    createdTime: page.created_time || props["Created Time"]?.created_time || props["Created time"]?.created_time || "",
     lastEdited: page.last_edited_time
   };
+}
+
+export async function fetchInboxTasks() {
+  const payload = {
+    databaseId: TASK_DB_ID,
+    page_size: 100
+  };
+
+  const res = await fetch("/api/notion/query-database", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  const list = [];
+  (data.results || []).forEach(p => {
+    list.push(parseInboxTask(p));
+  });
+
+  return list;
 }

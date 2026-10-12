@@ -1,5 +1,4 @@
 // File: services/notion/task-tracker/views/inbox-view/inbox-view.js
-// Filtering logic, date calculations, and container renderer for Inbox View
 
 import { renderInboxTaskCard, getDueRaw, toLocalDateString, toWallTime } from "./task-card/task-card.js";
 
@@ -12,7 +11,7 @@ const IST_FMT = new Intl.DateTimeFormat("en-CA", {
   hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
 });
 
-export { getDueRaw, toLocalDateString };
+export { getDueRaw, toLocalDateString, toWallTime };
 
 export function toIstStamp(rawVal) {
   if (!rawVal) return "";
@@ -26,28 +25,28 @@ export function toIstStamp(rawVal) {
       return `${o.year}-${o.month}-${o.day} ${o.hour}:${o.minute}:${o.second}`;
     }
   }
-  const m = s.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+  const m = s.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
   return m ? `${m[1]} ${m[2]}:${m[3]}:${m[4] || "00"}` : "";
 }
 
-export function toFormulaStamp(rawVal) {
-  if (!rawVal) return "";
-  const s = String(rawVal).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return `${s} 00:00:00`;
-  const m = s.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
-  return m ? `${m[1]} ${m[2]}:${m[3]}:${m[4] || "00"}` : "";
-}
+export const toFormulaStamp = toIstStamp;
+export const toNormalizedStamp = toIstStamp;
 
 const FORMULA_PROP_NAME = "formula due date w/o tz";
 
 export function getFormulaDueRaw(task) {
+  if (task.formulaDate) return task.formulaDate;
   const props = task.properties || {};
   for (const [key, p] of Object.entries(props)) {
-    if (key.trim().toLowerCase() !== FORMULA_PROP_NAME) continue;
-    if (!p || p.type !== "formula" || !p.formula) return "";
-    const f = p.formula;
-    if (f.type === "date") return (f.date && f.date.start) ? String(f.date.start).trim() : "";
-    if (f.type === "string") return f.string ? String(f.string).trim() : "";
+    const k = key.trim().toLowerCase();
+    if (!k.includes("formula due date w/o tz") && !k.includes("without tz") && !k.includes("w/o tz")) continue;
+    if (!p) return "";
+    if (p.type === "formula" && p.formula) {
+      if (p.formula.date?.start) return p.formula.date.start;
+      if (p.formula.string) return p.formula.string;
+    }
+    if (p.type === "date" && p.date?.start) return p.date.start;
+    if (p.type === "rollup" && p.rollup?.date?.start) return p.rollup.date.start;
     return "";
   }
   return "";
@@ -66,64 +65,66 @@ function getNumProp(task, name) {
   return null;
 }
 
-function fmtIstStamp(d) {
-  const o = {};
-  IST_FMT.formatToParts(d).forEach(x => { o[x.type] = x.value; });
-  return `${o.year}-${o.month}-${o.day} ${o.hour}:${o.minute}:${o.second}`;
-}
-
+// Target: DATE(created_date in IST) + due hours : due minutes
 export function computeExpected(task) {
-  const dueRaw = getDueRaw(task);
+  const createdRaw = task.createdTime || task.properties?.["Created Time"]?.created_time || task.properties?.["Created time"]?.created_time;
   const H = getNumProp(task, "due hours");
   const M = getNumProp(task, "due minutes");
-  if (!dueRaw || H == null || M == null) return null;
-  const dueStamp = toIstStamp(dueRaw);
-  if (!dueStamp) return null;
 
-  const dueInstant = new Date(dueStamp.replace(" ", "T") + "+05:30");
-  const offsetMs = (H * 60 + M) * 60000;
-  const base = new Date(dueInstant.getTime() - offsetMs);
+  if (!createdRaw || H == null || M == null) return null;
 
-  const istDate = base.toLocaleDateString("en-CA", { timeZone: TZ });
-  const istStamp = fmtIstStamp(new Date(Date.parse(`${istDate}T00:00:00+05:30`) + offsetMs));
+  const createdIstStamp = toIstStamp(createdRaw);
+  if (!createdIstStamp) return null;
+  const createdDateOnly = createdIstStamp.slice(0, 10);
 
-  const utcDate = base.toISOString().slice(0, 10);
-  const utcStamp = new Date(Date.parse(`${utcDate}T00:00:00Z`) + offsetMs).toISOString().slice(0, 19).replace("T", " ");
+  const hh = String(H).padStart(2, "0");
+  const mm = String(M).padStart(2, "0");
+  const expectedStamp = `${createdDateOnly} ${hh}:${mm}:00`;
 
-  const apiStamp = toFormulaStamp(getFormulaDueRaw(task));
-  return { istStamp, utcStamp, apiStamp, modelOk: !!apiStamp && apiStamp === utcStamp };
+  return { expectedStamp, istStamp: expectedStamp };
 }
 
 export function isInboxTask(task) {
   if (!task) return false;
 
-  const dueRaw = getDueRaw(task);
-  if (!dueRaw) return false;
+  // 1. Check Notion formula flag
+  const flag = task.missingDataString || "";
+  let hasIncorrectFlag = flag.includes("Incorrect Due Date");
 
-  // 1. If task has recur logic / expected model, verify against real IST stamp
+  if (!hasIncorrectFlag && task.properties) {
+    for (const [key, p] of Object.entries(task.properties)) {
+      if (key.trim().toLowerCase() === "missing data") {
+        const s = JSON.stringify(p || {});
+        if (s.includes("Incorrect Due Date")) {
+          hasIncorrectFlag = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!hasIncorrectFlag) return false;
+
+  // 2. Strict Match: Due Date in IST vs DATE(created_time) + due_hours:due_minutes
+  const dueRaw = task.nativeDate || getDueRaw(task) || task.date;
+  if (!dueRaw) return true;
+
   const exp = computeExpected(task);
-  if (exp && exp.istStamp) {
-    const currentIstStamp = toIstStamp(dueRaw);
-    return currentIstStamp !== exp.istStamp;
+  if (!exp || !exp.expectedStamp) return true;
+
+  const actualDueIstStamp = toIstStamp(dueRaw);
+
+  // Match = VALID = DROP
+  if (actualDueIstStamp === exp.expectedStamp) {
+    return false;
   }
 
-  // 2. For standard tasks without recur offsets, check if Missing Data flag is present AND date is missing/broken
-  const missingVals = task.missingDataValues || [];
-  const hasFlag = Array.isArray(missingVals) && missingVals.some(v => typeof v === "string" && v.includes("❌ Incorrect Due Date"));
-  
-  if (hasFlag) {
-    const fRaw = getFormulaDueRaw(task);
-    if (!fRaw) return false;
-    const dStamp = toIstStamp(dueRaw);
-    const fStamp = toFormulaStamp(fRaw);
-    return dStamp.slice(0, 10) !== fStamp.slice(0, 10);
-  }
-
-  return false;
+  // Not match = BROKEN = SHOW IN INBOX
+  return true;
 }
 
 function extractTaskTime(task) {
-  const raw = getDueRaw(task);
+  const raw = getDueRaw(task) || task.nativeDate || task.date;
   return toWallTime(raw) || "99:99";
 }
 
@@ -140,8 +141,9 @@ function inboxTaskComparator(a, b) {
 }
 
 function getStage1Bucket(taskDate) {
-  if (!taskDate) return "No Due Date";
+  if (!taskDate) return "Past Due";
   const dOnly = toLocalDateString(taskDate);
+  if (!dOnly) return "Past Due";
 
   const now = new Date();
   const today = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
@@ -174,11 +176,11 @@ export function renderInboxView(inboxTasks, applyDefaults = true) {
 
   for (let i = 0; i < inboxTasks.length; i++) {
     const t = inboxTasks[i];
-    const targetDate = getDueRaw(t);
+    const targetDate = getDueRaw(t) || t.nativeDate || t.date || "";
     const s1 = getStage1Bucket(targetDate);
     if (!tree.has(s1)) tree.set(s1, new Map());
 
-    const s2Date = targetDate ? toLocalDateString(targetDate) : "No Date";
+    const s2Date = targetDate ? (toLocalDateString(targetDate) || "No Date") : "No Date";
     const s1Map = tree.get(s1);
 
     if (!s1Map.has(s2Date)) {
@@ -209,12 +211,10 @@ export function renderInboxView(inboxTasks, applyDefaults = true) {
     else if (s1Name === "Future Due") { s1Icon = "fa-calendar-week"; s1Class = "s1-future"; }
     else if (s1Name === "No Due Date") { s1Icon = "fa-calendar-xmark"; s1Class = "s1-future"; }
 
-    const isDueToday = s1Name === "Due Today";
-    const s1OpenAttr = (applyDefaults && isDueToday) ? "open" : "";
     const s1Key = `s1-${s1Name.replace(/\s+/g, "_")}`;
 
     htmlFragments.push(`
-      <details class="stage1-group ${s1Class}" data-accord-key="${s1Key}" ${s1OpenAttr}>
+      <details class="stage1-group ${s1Class}" data-accord-key="${s1Key}" open>
         <summary class="stage1-summary">
           <i class="fa-solid ${s1Icon}"></i>
           <span>${s1Name}</span>
@@ -236,14 +236,15 @@ export function renderInboxView(inboxTasks, applyDefaults = true) {
       let dLabel = dKey;
       if (dKey !== "No Date") {
         const dObj = new Date(dKey + "T00:00:00Z");
-        dLabel = dObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
+        dLabel = !isNaN(dObj.getTime())
+          ? dObj.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })
+          : dKey;
       }
 
       const s2Key = `s2-${s1Name.replace(/\s+/g, "_")}-${dKey}`;
-      const s2OpenAttr = (applyDefaults && isDueToday) ? "open" : "";
 
       htmlFragments.push(`
-        <details class="stage2-group" data-accord-key="${s2Key}" ${s2OpenAttr}>
+        <details class="stage2-group" data-accord-key="${s2Key}" open>
           <summary class="stage2-summary">
             <i class="fa-regular fa-calendar-check"></i>
             <span class="stage2-date-text">${dLabel}</span>

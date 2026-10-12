@@ -1,10 +1,8 @@
 // File: services/notion/task-tracker/views/inbox-view/features/due-date-fix/due-date-fix.js
-// Resolves expected due dates and patches Notion records without date rollback
+// Resolves expected due dates and patches Notion records without IST date rollback
 
 import { showToast } from "../../../../../common/features/toast/toast.js";
 import { computeExpected, getFormulaDueRaw, toFormulaStamp } from "../../inbox-view.js";
-
-const TZ = "Asia/Kolkata";
 
 function resolveDueDatePropName(task) {
   if (task.datePropName) return task.datePropName;
@@ -15,7 +13,7 @@ function resolveDueDatePropName(task) {
   return "Due Date";
 }
 
-// Convert formula or expected stamp directly to IST ISO 8601 string: YYYY-MM-DDTHH:mm:ss+05:30
+// Convert target stamp directly to IST ISO 8601: YYYY-MM-DDTHH:mm:ss+05:30
 export function getResolvedExpectedIstIso(task) {
   const exp = computeExpected(task);
   let targetStamp = "";
@@ -23,14 +21,12 @@ export function getResolvedExpectedIstIso(task) {
   if (exp && exp.istStamp) {
     targetStamp = exp.istStamp;
   } else {
-    // If API formula raw is available, read clock text as IST
     const fRaw = getFormulaDueRaw(task);
     targetStamp = toFormulaStamp(fRaw);
   }
 
   if (!targetStamp) return null;
 
-  // Format: "YYYY-MM-DD HH:mm:ss"
   const m = targetStamp.match(/^(\d{4}-\d{2}-\d{2})(?:[T\s](\d{2}:\d{2})(?::(\d{2}))?)?/);
   if (m) {
     const datePart = m[1];
