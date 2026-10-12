@@ -96,23 +96,30 @@ export function computeExpected(task) {
 
 export function isInboxTask(task) {
   if (!task) return false;
-  if (task.isDone || (task.status || "").toLowerCase().trim() === "done") return false;
-
-  const created = toIstStamp(task.createdTime);
-  if (!created || created < "2026-06-01 00:00:00") return false;
 
   const dueRaw = getDueRaw(task);
   if (!dueRaw) return false;
 
+  // 1. If task has recur logic / expected model, verify against real IST stamp
   const exp = computeExpected(task);
-  let fStamp = "";
-  if (exp && exp.modelOk) fStamp = exp.istStamp;
-  else fStamp = toFormulaStamp(getFormulaDueRaw(task));
+  if (exp && exp.istStamp) {
+    const currentIstStamp = toIstStamp(dueRaw);
+    return currentIstStamp !== exp.istStamp;
+  }
 
-  const dStamp = toIstStamp(dueRaw);
-  if (!fStamp || !dStamp) return false;
+  // 2. For standard tasks without recur offsets, check if Missing Data flag is present AND date is missing/broken
+  const missingVals = task.missingDataValues || [];
+  const hasFlag = Array.isArray(missingVals) && missingVals.some(v => typeof v === "string" && v.includes("❌ Incorrect Due Date"));
+  
+  if (hasFlag) {
+    const fRaw = getFormulaDueRaw(task);
+    if (!fRaw) return false;
+    const dStamp = toIstStamp(dueRaw);
+    const fStamp = toFormulaStamp(fRaw);
+    return dStamp.slice(0, 10) !== fStamp.slice(0, 10);
+  }
 
-  return fStamp !== dStamp;
+  return false;
 }
 
 function extractTaskTime(task) {
