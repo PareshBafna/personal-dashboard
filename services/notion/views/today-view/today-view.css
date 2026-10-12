@@ -1,0 +1,52 @@
+/* File: services/notion/views/today-view/today-view.css */
+
+#tabToday {
+  width: 100% !important;
+  align-items: stretch;
+  gap: 12px;
+}
+
+#tabToday.active {
+  display: flex !important;
+}
+
+#tabToday .stage1-group {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-bottom: 12px;
+}
+
+#tabToday .stage1-summary {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+  padding: 10px 14px !important;
+}
+
+#tabToday .stage1-summary span:first-of-type {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+#tabToday .stage1-summary .chevron-icon {
+  margin-left: auto;
+}
+
+#tabToday .stage2-group {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#tabToday .stage2-summary {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+
+#tabToday .stage4-col-details {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}

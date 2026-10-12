@@ -45,6 +45,19 @@ export function toLocalWallTime(rawVal) {
   return m ? `${m[1]}:${m[2]}` : "";
 }
 
+function getNumProp(task, name) {
+  const props = task.properties || {};
+  for (const [key, p] of Object.entries(props)) {
+    if (key.trim().toLowerCase() !== name || !p) continue;
+    let v = null;
+    if (p.type === "number") v = p.number;
+    else if (p.type === "formula" && p.formula) v = p.formula.number;
+    else if (p.type === "rollup" && p.rollup) v = p.rollup.number;
+    return (typeof v === "number") ? v : null;
+  }
+  return null;
+}
+
 // Get standardized full IST sort key: "YYYY-MM-DD HH:mm"
 function getTaskSortKey(task) {
   const raw = getNativeDueDateRaw(task) || task.date || task.formulaDate || "";
@@ -77,8 +90,47 @@ export function hasIncorrectDueDate(task) {
   if (!task) return false;
   if (task.isDone || (task.status || "").toLowerCase().trim() === "done") return false;
 
+  // Check if Notion flagged it
   const vals = task.missingDataValues || [];
-  return Array.isArray(vals) && vals.some(v => typeof v === "string" && v.includes("❌ Incorrect Due Date"));
+  let isFlagged = Array.isArray(vals) && vals.some(v => typeof v === "string" && v.includes("❌ Incorrect Due Date"));
+  
+  if (!isFlagged && task.missingDataString) {
+    isFlagged = task.missingDataString.includes("Incorrect Due Date");
+  }
+
+  if (!isFlagged && task.properties) {
+    for (const [key, p] of Object.entries(task.properties)) {
+      if (key.trim().toLowerCase() === "missing data") {
+        const s = JSON.stringify(p || {});
+        if (s.includes("Incorrect Due Date")) {
+          isFlagged = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!isFlagged) return false;
+
+  // Verify against IST: DATE(created_time) + due_hours:due_minutes
+  const rawDue = getNativeDueDateRaw(task);
+  const createdRaw = task.createdTime || task.properties?.["Created Time"]?.created_time || task.properties?.["Created time"]?.created_time;
+  const H = getNumProp(task, "due hours");
+  const M = getNumProp(task, "due minutes");
+
+  if (rawDue && createdRaw && H != null && M != null) {
+    const createdIst = toLocalDateString(createdRaw);
+    const expectedTime = `${String(H).padStart(2, "0")}:${String(M).padStart(2, "0")}`;
+    const actualDate = toLocalDateString(rawDue);
+    const actualTime = toLocalWallTime(rawDue);
+
+    // If actual IST matches expected, drop Notion UTC false flag
+    if (actualDate === createdIst && actualTime === expectedTime) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // Sort Order: Due Date and Time -> Priority -> Name
@@ -101,10 +153,26 @@ export function renderTaskCard(task, showCheckbox = true, overrideCol = null) {
   const isCompleted = overrideCol === "done" ? true : (overrideCol ? false : task.isDone);
   const isInProg = overrideCol === "in-progress" ? true : (!overrideCol && (task.status || "").toLowerCase().includes("progress"));
 
+  // Compare full IST date + time against current IST timestamp
+  const rawDue = getNativeDueDateRaw(task);
+  const taskDateIso = toLocalDateString(rawDue);
+  const taskTimeStr = toLocalWallTime(rawDue);
+
+  const now = new Date();
+  const todayIso = now.toLocaleDateString("en-CA", { timeZone: TZ });
+  const nowTimeStr = now.toLocaleTimeString("en-GB", { timeZone: TZ, hourCycle: "h23", hour: "2-digit", minute: "2-digit" });
+
+  let isPastDue = false;
+  if (taskDateIso) {
+    if (taskDateIso < todayIso) {
+      isPastDue = true;
+    } else if (taskDateIso === todayIso && taskTimeStr) {
+      isPastDue = taskTimeStr < nowTimeStr;
+    }
+  }
+
   const isIncorrect = hasIncorrectDueDate(task);
   const dateFormatted = formatTaskDate(task);
-  const taskDateIso = toLocalDateString(getNativeDueDateRaw(task));
-  const isPastDue = taskDateIso && taskDateIso < new Date().toLocaleDateString("en-CA", { timeZone: TZ });
   const dateBadgeClass = isIncorrect || isPastDue ? "date-color-red" : "date-color-blue";
 
   return `
@@ -170,18 +238,28 @@ export function renderTaskCard(task, showCheckbox = true, overrideCol = null) {
 
           <!-- Row 3: Status Actions -->
           <div class="item-status-actions">
-            ${isInProg ? `
+            ${isCompleted ? `
               <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-target="Not Started" data-id="${task.id}">
                 <i class="fa-regular fa-circle-play"></i> Mark Not Started
+              </button>
+              <button type="button" class="status-action-btn btn-to-prog" data-action="status" data-target="In Progress" data-id="${task.id}">
+                <i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress
+              </button>
+            ` : (isInProg ? `
+              <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-target="Not Started" data-id="${task.id}">
+                <i class="fa-regular fa-circle-play"></i> Mark Not Started
+              </button>
+              <button type="button" class="status-action-btn btn-to-done" data-action="status" data-target="Done" data-id="${task.id}">
+                <i class="fa-solid fa-circle-check"></i> Mark Completed
               </button>
             ` : `
               <button type="button" class="status-action-btn btn-to-prog" data-action="status" data-target="In Progress" data-id="${task.id}">
                 <i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress
               </button>
-            `}
-            <button type="button" class="status-action-btn btn-to-done" data-action="status" data-target="Done" data-id="${task.id}">
-              <i class="fa-solid fa-circle-check"></i> Mark Completed
-            </button>
+              <button type="button" class="status-action-btn btn-to-done" data-action="status" data-target="Done" data-id="${task.id}">
+                <i class="fa-solid fa-circle-check"></i> Mark Completed
+              </button>
+            `)}
           </div>
 
           <!-- Row 4: Update, Duplicate & Notion Action Buttons -->
