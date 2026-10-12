@@ -170,18 +170,28 @@ export function renderTaskCard(task, showCheckbox = true, overrideCol = null) {
 
           <!-- Row 3: Status Actions -->
           <div class="item-status-actions">
-            ${isInProg ? `
+            ${isCompleted ? `
               <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-target="Not Started" data-id="${task.id}">
                 <i class="fa-regular fa-circle-play"></i> Mark Not Started
+              </button>
+              <button type="button" class="status-action-btn btn-to-prog" data-action="status" data-target="In Progress" data-id="${task.id}">
+                <i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress
+              </button>
+            ` : (isInProg ? `
+              <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-target="Not Started" data-id="${task.id}">
+                <i class="fa-regular fa-circle-play"></i> Mark Not Started
+              </button>
+              <button type="button" class="status-action-btn btn-to-done" data-action="status" data-target="Done" data-id="${task.id}">
+                <i class="fa-solid fa-circle-check"></i> Mark Completed
               </button>
             ` : `
               <button type="button" class="status-action-btn btn-to-prog" data-action="status" data-target="In Progress" data-id="${task.id}">
                 <i class="fa-solid fa-circle-half-stroke"></i> Mark In Progress
               </button>
-            `}
-            <button type="button" class="status-action-btn btn-to-done" data-action="status" data-target="Done" data-id="${task.id}">
-              <i class="fa-solid fa-circle-check"></i> Mark Completed
-            </button>
+              <button type="button" class="status-action-btn btn-to-done" data-action="status" data-target="Done" data-id="${task.id}">
+                <i class="fa-solid fa-circle-check"></i> Mark Completed
+              </button>
+            `)}
           </div>
 
           <!-- Row 4: Update, Duplicate & Notion Action Buttons -->
