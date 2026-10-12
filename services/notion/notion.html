@@ -1,6 +1,4 @@
 <!-- File: services/notion/notion.html -->
-<!-- Mobile-style hub homepage for Notion services with bottom navigation bar -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./notion.css">
+  <link rel="stylesheet" href="./common/features/telemetry/telemetry.css">
+  <link rel="stylesheet" href="./task-tracker/task-tracker.css">
+  <link rel="stylesheet" href="./views/today-view/today-view.css">
 </head>
 <body>
   <div class="glow-bg"></div>
@@ -19,24 +20,27 @@
   <div class="hub-wrapper">
     <header class="hub-header">
       <div class="brand">
-        <a href="../../index.html" class="back-link" title="Back to Root">
-          <i class="fa-solid fa-arrow-left"></i>
-        </a>
         <div class="brand-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/>
-            <path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2"/>
-          </svg>
+          <i class="fa-solid fa-calendar-day" style="font-size: 1rem; color: #ffffff;"></i>
         </div>
         <div>
-          <h1 id="tabTitle">Pages</h1>
+          <h1 id="tabTitle">Today</h1>
         </div>
       </div>
+
+      <!-- Header Sync Pill -->
+      <button type="button" class="header-sync-btn" id="headerSyncBtn" title="Sync Database">
+        <i class="fa-solid fa-rotate"></i>
+        <span>Sync</span>
+      </button>
     </header>
 
+    <!-- Shared Telemetry Slot -->
+    <div id="telemetrySlot"></div>
+
     <main id="contentContainer" class="hub-content">
-      <!-- 1. TODAY TAB -->
-      <section id="tabToday" class="hub-tab-panel">
+      <!-- 1. TODAY TAB (ACTIVE BY DEFAULT) -->
+      <section id="tabToday" class="hub-tab-panel active">
         <div class="empty-placeholder">
           <i class="fa-solid fa-calendar-day"></i>
           <h3>Today's Agenda</h3>
@@ -62,23 +66,9 @@
         </div>
       </section>
 
-      <!-- 4. SEARCH TAB -->
-      <section id="tabSearch" class="hub-tab-panel">
-        <div class="search-input-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="hubSearchInput" placeholder="Search workspace..." autocomplete="off">
-        </div>
-        <div class="empty-placeholder" style="margin-top: 20px;">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <h3>Search Notion</h3>
-          <p>Type keywords to search across connected databases.</p>
-        </div>
-      </section>
-
-      <!-- 5. LIST TAB (ACTIVE BY DEFAULT) -->
-      <section id="tabList" class="hub-tab-panel active">
+      <!-- 4. LIST TAB -->
+      <section id="tabList" class="hub-tab-panel">
         <div class="pages-grid">
-          <!-- Page 1: Dashboard -->
           <a href="./dashboard/dashboard.html" class="page-card">
             <div class="page-card-icon icon-dashboard">
               <i class="fa-solid fa-chart-pie"></i>
@@ -90,7 +80,6 @@
             <i class="fa-solid fa-chevron-right chevron-link"></i>
           </a>
 
-          <!-- Page 2: Task Tracker -->
           <a href="./task-tracker/task-tracker.html" class="page-card">
             <div class="page-card-icon icon-tracker">
               <i class="fa-solid fa-list-check"></i>
@@ -107,7 +96,7 @@
 
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
-      <button type="button" class="nav-item" data-tab="today">
+      <button type="button" class="nav-item active" data-tab="today">
         <i class="fa-solid fa-calendar-day"></i>
         <span>Today</span>
       </button>
@@ -122,12 +111,7 @@
         <span>All</span>
       </button>
 
-      <button type="button" class="nav-item" data-tab="search">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <span>Search</span>
-      </button>
-
-      <button type="button" class="nav-item active" data-tab="list">
+      <button type="button" class="nav-item" data-tab="list">
         <i class="fa-solid fa-list-ul"></i>
         <span>List</span>
       </button>

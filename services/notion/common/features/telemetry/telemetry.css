@@ -1,0 +1,72 @@
+/* File: services/notion/common/features/telemetry/telemetry.css */
+
+.telemetry-bar-container {
+  width: 100%;
+  padding: 14px 16px 8px 16px;
+  box-sizing: border-box;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--panel-border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.metric-card {
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-align: center;
+  border-right: 1px solid var(--panel-border, rgba(255, 255, 255, 0.08));
+  box-sizing: border-box;
+}
+
+.metric-card:last-child {
+  border-right: none;
+}
+
+.metric-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  color: var(--text-dim, #71717a);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+.metric-value.metric-todo {
+  color: #fca5a5; /* Soft Red / Coral */
+}
+
+.metric-value.metric-prog {
+  color: #fde047; /* Yellow / Gold */
+}
+
+@media (max-width: 480px) {
+  .telemetry-bar-container {
+    padding: 10px 12px 6px 12px;
+  }
+  .metric-card {
+    padding: 8px 4px;
+  }
+  .metric-value {
+    font-size: 1.05rem;
+  }
+}
