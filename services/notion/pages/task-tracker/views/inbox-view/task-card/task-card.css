@@ -1,5 +1,4 @@
-/* File: services/notion/task-tracker/views/inbox-view/task-card/task-card.css */
-/* Styles for standalone task cards used in Inbox View */
+/* File: services/notion/pages/task-tracker/views/inbox-view/task-card/task-card.css */
 
 .checklist-item {
   display: flex;
@@ -114,10 +113,6 @@
 .date-highlight-badge.date-color-red {
   background: rgba(239, 68, 68, 0.14) !important;
   border: 1px solid rgba(239, 68, 68, 0.45) !important;
-  color: #f87171 !important;
-}
-.date-highlight-badge.date-color-red i,
-.date-highlight-badge.date-color-red span {
   color: #f87171 !important;
 }
 

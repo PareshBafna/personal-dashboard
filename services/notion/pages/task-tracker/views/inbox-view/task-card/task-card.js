@@ -1,5 +1,6 @@
-// File: services/notion/task-tracker/views/inbox-view/task-card/task-card.js
-// Renders individual task card markup for Inbox View
+// File: services/notion/pages/task-tracker/views/inbox-view/task-card/task-card.js
+
+import { renderFixDueDateButton } from "../features/due-date-fix/due-date-fix.js";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const TZ = "Asia/Kolkata";
@@ -85,10 +86,7 @@ export function renderInboxTaskCard(task) {
 
         <div class="task-actions-section">
           <div class="item-notion-action">
-            <button type="button" class="open-notion-btn fix-due-date-card-btn" data-action="fix-due-date" data-id="${task.id}">
-              <i class="fa-solid fa-wrench"></i>
-              <span>Fix Due Date</span>
-            </button>
+            ${renderFixDueDateButton(task.id)}
             <a href="${task.url}" target="_blank" class="open-notion-btn">
               <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/>

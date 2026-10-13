@@ -1,5 +1,4 @@
 // File: services/notion/pages/task-tracker/task-tracker.js
-// Pure view connector and global event delegator for Inbox and Master views
 
 import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.client.js";
 import { fetchInboxTasks } from "./views/inbox-view/api/api.client.js";
@@ -21,7 +20,6 @@ import {
   updateMasterTaskDomInPlace, 
   removeMasterTaskDomInPlace 
 } from "./views/master-view/master-view.js";
-import { renderTaskCard, multiLevelTaskComparator } from "./views/master-view/task-card/task-card.js";
 import { renderInboxView, isInboxTask } from "./views/inbox-view/inbox-view.js";
 import { triggerFixDueDate } from "./views/inbox-view/features/due-date-fix/due-date-fix.js";
 import { initTaskAdd } from "./features/task-add/task-add.js";
@@ -29,13 +27,36 @@ import { initTaskAdd } from "./features/task-add/task-add.js";
 let allMasterTasks = [];
 let allInboxTasks = [];
 let isInboxLoaded = false;
+let currentTelemetryType = "master";
+let telemetryHtmlCache = { master: "", inbox: "" };
+
 const container = document.getElementById("tasksContainer");
 
 async function loadFragments() {
-  document.getElementById("telemetrySlot").innerHTML = await (await fetch("./views/master-view/features/telemetry/telemetry.html")).text();
-  document.getElementById("toolbarSlot").innerHTML = await (await fetch("./features/filter-toolbar/filter-toolbar.html")).text();
-  document.getElementById("addTaskSlot").innerHTML = await (await fetch("./features/task-add/task-add.html")).text();
+  const [masterTelHtml, inboxTelHtml, toolbarHtml, addHtml] = await Promise.all([
+    fetch("./views/master-view/features/telemetry/telemetry.html").then(r => r.text()),
+    fetch("./views/inbox-view/features/telemetry/telemetry.html").then(r => r.text()),
+    fetch("./features/filter-toolbar/filter-toolbar.html").then(r => r.text()),
+    fetch("./features/task-add/task-add.html").then(r => r.text())
+  ]);
+
+  telemetryHtmlCache.master = masterTelHtml;
+  telemetryHtmlCache.inbox = inboxTelHtml;
+
+  document.getElementById("telemetrySlot").innerHTML = masterTelHtml;
+  document.getElementById("toolbarSlot").innerHTML = toolbarHtml;
+  document.getElementById("addTaskSlot").innerHTML = addHtml;
+
   await initMasterViewFeatures((task, dateStr) => updateTaskDueDate(task, dateStr, () => renderFull(false)));
+}
+
+function syncTelemetryView(type) {
+  if (currentTelemetryType === type) return;
+  const slot = document.getElementById("telemetrySlot");
+  if (slot && telemetryHtmlCache[type]) {
+    slot.innerHTML = telemetryHtmlCache[type];
+    currentTelemetryType = type;
+  }
 }
 
 function filterByQuery(tasks) {
@@ -46,17 +67,22 @@ function filterByQuery(tasks) {
 
 async function handleTabSwitch() {
   const { status } = getFilterState();
-  if (status === "inbox" && !isInboxLoaded) {
-    if (container) {
-      container.innerHTML = `
-        <div style="display: flex; justify-content: center; align-items: center; padding: 60px; color: var(--text-dim); gap: 12px;">
-          <i class="fa-solid fa-rotate spin" style="font-size: 1.5rem;"></i>
-          <span>Loading Inbox tasks...</span>
-        </div>
-      `;
+  if (status === "inbox") {
+    syncTelemetryView("inbox");
+    if (!isInboxLoaded) {
+      if (container) {
+        container.innerHTML = `
+          <div style="display: flex; justify-content: center; align-items: center; padding: 60px; color: var(--text-dim); gap: 12px;">
+            <i class="fa-solid fa-rotate spin" style="font-size: 1.5rem;"></i>
+            <span>Loading Inbox tasks...</span>
+          </div>
+        `;
+      }
+      allInboxTasks = await fetchInboxTasks();
+      isInboxLoaded = true;
     }
-    allInboxTasks = await fetchInboxTasks();
-    isInboxLoaded = true;
+  } else {
+    syncTelemetryView("master");
   }
   renderFull(true);
 }
@@ -66,12 +92,13 @@ function renderFull(isHardBoot = false) {
   const { status } = getFilterState();
 
   if (status === "inbox") {
+    syncTelemetryView("inbox");
     const filteredInbox = filterByQuery(allInboxTasks).filter(isInboxTask);
     updateInboxTelemetry(filteredInbox);
     const prevScroll = container.scrollTop;
 
     if (isHardBoot) {
-      container.innerHTML = renderInboxView(filteredInbox, true);
+      container.innerHTML = renderInboxView(filteredInbox);
     } else {
       const currentOpenKeys = new Set();
       container.querySelectorAll("details").forEach(d => {
@@ -80,7 +107,7 @@ function renderFull(isHardBoot = false) {
         }
       });
 
-      container.innerHTML = renderInboxView(filteredInbox, false);
+      container.innerHTML = renderInboxView(filteredInbox);
 
       container.querySelectorAll("details").forEach(d => {
         if (d.dataset.accordKey && currentOpenKeys.has(d.dataset.accordKey)) {
@@ -93,7 +120,7 @@ function renderFull(isHardBoot = false) {
     return;
   }
 
-  // Master View
+  syncTelemetryView("master");
   const filteredMaster = filterByQuery(allMasterTasks);
   updateMasterTelemetry(filteredMaster);
   const prevScroll = container.scrollTop;

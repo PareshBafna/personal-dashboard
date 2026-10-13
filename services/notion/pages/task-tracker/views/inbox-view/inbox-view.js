@@ -1,127 +1,11 @@
-// File: services/notion/task-tracker/views/inbox-view/inbox-view.js
+// File: services/notion/pages/task-tracker/views/inbox-view/inbox-view.js
 
 import { renderInboxTaskCard, getDueRaw, toLocalDateString, toWallTime } from "./task-card/task-card.js";
+import { isInboxTask } from "./features/due-date-fix/due-date-fix.js";
+
+export { isInboxTask };
 
 const PRIORITY_RANK = { critical: 1, high: 2, medium: 3, low: 4, lowest: 5 };
-const TZ = "Asia/Kolkata";
-const HAS_OFFSET = /T.*(Z|[+-]\d{2}:?\d{2})$/;
-
-const IST_FMT = new Intl.DateTimeFormat("en-CA", {
-  timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
-  hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
-});
-
-export { getDueRaw, toLocalDateString, toWallTime };
-
-export function toIstStamp(rawVal) {
-  if (!rawVal) return "";
-  const s = String(rawVal).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return `${s} 00:00:00`;
-  if (HAS_OFFSET.test(s)) {
-    const d = new Date(s);
-    if (!isNaN(d.getTime())) {
-      const o = {};
-      IST_FMT.formatToParts(d).forEach(x => { o[x.type] = x.value; });
-      return `${o.year}-${o.month}-${o.day} ${o.hour}:${o.minute}:${o.second}`;
-    }
-  }
-  const m = s.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/);
-  return m ? `${m[1]} ${m[2]}:${m[3]}:${m[4] || "00"}` : "";
-}
-
-export const toFormulaStamp = toIstStamp;
-export const toNormalizedStamp = toIstStamp;
-
-const FORMULA_PROP_NAME = "formula due date w/o tz";
-
-export function getFormulaDueRaw(task) {
-  if (task.formulaDate) return task.formulaDate;
-  const props = task.properties || {};
-  for (const [key, p] of Object.entries(props)) {
-    const k = key.trim().toLowerCase();
-    if (!k.includes("formula due date w/o tz") && !k.includes("without tz") && !k.includes("w/o tz")) continue;
-    if (!p) return "";
-    if (p.type === "formula" && p.formula) {
-      if (p.formula.date?.start) return p.formula.date.start;
-      if (p.formula.string) return p.formula.string;
-    }
-    if (p.type === "date" && p.date?.start) return p.date.start;
-    if (p.type === "rollup" && p.rollup?.date?.start) return p.rollup.date.start;
-    return "";
-  }
-  return "";
-}
-
-function getNumProp(task, name) {
-  const props = task.properties || {};
-  for (const [key, p] of Object.entries(props)) {
-    if (key.trim().toLowerCase() !== name || !p) continue;
-    let v = null;
-    if (p.type === "number") v = p.number;
-    else if (p.type === "formula" && p.formula) v = p.formula.number;
-    else if (p.type === "rollup" && p.rollup) v = p.rollup.number;
-    return (typeof v === "number") ? v : null;
-  }
-  return null;
-}
-
-// Target: DATE(created_date in IST) + due hours : due minutes
-export function computeExpected(task) {
-  const createdRaw = task.createdTime || task.properties?.["Created Time"]?.created_time || task.properties?.["Created time"]?.created_time;
-  const H = getNumProp(task, "due hours");
-  const M = getNumProp(task, "due minutes");
-
-  if (!createdRaw || H == null || M == null) return null;
-
-  const createdIstStamp = toIstStamp(createdRaw);
-  if (!createdIstStamp) return null;
-  const createdDateOnly = createdIstStamp.slice(0, 10);
-
-  const hh = String(H).padStart(2, "0");
-  const mm = String(M).padStart(2, "0");
-  const expectedStamp = `${createdDateOnly} ${hh}:${mm}:00`;
-
-  return { expectedStamp, istStamp: expectedStamp };
-}
-
-export function isInboxTask(task) {
-  if (!task) return false;
-
-  // 1. Check Notion formula flag
-  const flag = task.missingDataString || "";
-  let hasIncorrectFlag = flag.includes("Incorrect Due Date");
-
-  if (!hasIncorrectFlag && task.properties) {
-    for (const [key, p] of Object.entries(task.properties)) {
-      if (key.trim().toLowerCase() === "missing data") {
-        const s = JSON.stringify(p || {});
-        if (s.includes("Incorrect Due Date")) {
-          hasIncorrectFlag = true;
-          break;
-        }
-      }
-    }
-  }
-
-  if (!hasIncorrectFlag) return false;
-
-  // 2. Strict Match: Due Date in IST vs DATE(created_time) + due_hours:due_minutes
-  const dueRaw = task.nativeDate || getDueRaw(task) || task.date;
-  if (!dueRaw) return true;
-
-  const exp = computeExpected(task);
-  if (!exp || !exp.expectedStamp) return true;
-
-  const actualDueIstStamp = toIstStamp(dueRaw);
-
-  // Match = VALID = DROP
-  if (actualDueIstStamp === exp.expectedStamp) {
-    return false;
-  }
-
-  // Not match = BROKEN = SHOW IN INBOX
-  return true;
-}
 
 function extractTaskTime(task) {
   const raw = getDueRaw(task) || task.nativeDate || task.date;
@@ -157,12 +41,12 @@ function getStage1Bucket(taskDate) {
   return "Future Due";
 }
 
-export function renderInboxView(inboxTasks, applyDefaults = true) {
+export function renderInboxView(inboxTasks) {
   if (!inboxTasks || !inboxTasks.length) {
     return `
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 48px 16px; color: var(--text-dim); border: 1px dashed var(--panel-border); border-radius: 16px;">
-        <i class="fa-solid fa-circle-check" style="font-size: 1.8rem; color: #52c41a;"></i>
-        <span style="font-size: 0.95rem; font-weight: 600; color: #fff;">Inbox Zero: No tasks with incorrect due dates!</span>
+      <div class="inbox-zero-banner">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>Inbox Zero: No tasks with incorrect due dates!</span>
       </div>
     `;
   }
