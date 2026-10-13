@@ -1,8 +1,6 @@
-// File: services/notion/task-tracker/views/master-view/master-view.js
-// 4-Stage accordion builder connecting localized task cards, in-place DOM updates, custom date modal, duplicate, and update actions.
-// Excludes completed tasks from Stage 1, Stage 2, Stage 3, and Priority accordion badges.
+// File: services/notion/pages/task-tracker/views/master-view/master-view.js
 
-import { renderTaskCard, multiLevelTaskComparator } from "./task-card/task-card.js";
+import { renderTaskCard, multiLevelTaskComparator, toLocalDateString } from "./task-card/task-card.js";
 import { initCustomDateModal, openCustomDateModal } from "./features/custom-date-update/custom-date-update.js";
 import { updateTaskDueDate, setDateTodayOrTomorrow } from "./features/date-update/date-update.js";
 import { updateTaskPriority } from "./features/priority-update/priority-update.js";
@@ -12,7 +10,6 @@ import { deleteTask } from "./features/task-delete/task-delete.js";
 import { duplicateTask } from "./features/task-duplicate/task-duplicate.js";
 
 const TZ = "Asia/Kolkata";
-const HAS_OFFSET = /T.*(Z|[+-]\d{2}:?\d{2})$/;
 
 export async function initMasterViewFeatures(onDateUpdateRequested) {
   const slot = document.getElementById("customDateModalSlot");
@@ -117,17 +114,6 @@ export function removeMasterTaskDomInPlace(container, id, onFallbackRerender) {
   if (typeof onFallbackRerender === "function") onFallbackRerender();
 }
 
-function toLocalDateString(rawVal) {
-  if (!rawVal) return "";
-  const s = String(rawVal).trim();
-  if (HAS_OFFSET.test(s)) {
-    const d = new Date(s);
-    if (!isNaN(d.getTime())) return d.toLocaleDateString("en-CA", { timeZone: TZ });
-  }
-  const m = s.match(/^(\d{4}-\d{2}-\d{2})/);
-  return m ? m[1] : "";
-}
-
 function getStage1Bucket(taskDate) {
   if (!taskDate) return null;
   const dOnly = toLocalDateString(taskDate);
@@ -162,7 +148,6 @@ function getJiraPriorityIcon(prio) {
   return "fa-angles-down";
 }
 
-// Helper: check if task is completed
 function isTaskCompleted(item) {
   const norm = (item.status || "").toLowerCase();
   return !!(item.isDone || norm === "done" || norm.includes("complete"));
@@ -282,7 +267,6 @@ export function renderMasterView(taskList, applyDefaults = true) {
     const s1Map = tree.get(s1Name);
     if (!s1Map || s1Map.size === 0) continue;
 
-    // Badge count: Exclude completed tasks
     let s1ActiveCount = 0;
     let s1TotalTaskCount = 0;
     for (const dMap of s1Map.values()) {
@@ -321,7 +305,6 @@ export function renderMasterView(taskList, applyDefaults = true) {
       const dKey = sortedDates[dIdx];
       const s3Map = s1Map.get(dKey);
 
-      // Badge count: Exclude completed tasks
       let dateActiveCount = 0;
       let dateTotalCount = 0;
       for (const arr of s3Map.values()) {

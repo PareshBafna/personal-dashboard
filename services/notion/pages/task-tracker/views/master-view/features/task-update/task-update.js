@@ -1,5 +1,4 @@
-// File: services/notion/task-tracker/views/master-view/features/task-update/task-update.js
-// STRICTLY handles update modal form creation, field population, and Notion page saves
+// File: services/notion/pages/task-tracker/views/master-view/features/task-update/task-update.js
 
 import { schemaProps } from "../../api/api.client.js";
 import { showToast } from "../../../../../../common/features/toast/toast.js";
@@ -8,110 +7,11 @@ let updateModalEl = null;
 let currentTask = null;
 let onTaskUpdatedCallback = null;
 
-function ensureUpdateModalCreated() {
+async function ensureUpdateModalCreated() {
   if (updateModalEl) return;
 
-  const modalHtml = `
-    <div id="updateTaskModal" class="modal-backdrop">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <i class="fa-solid fa-pen-to-square" style="color: var(--notion-grey-primary); font-size: 1.1rem;"></i>
-            <h3>Update Task</h3>
-          </div>
-          <button type="button" id="closeUpdateModalCrossBtn" class="modal-cross-btn" title="Close">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <form id="updateTaskForm" class="modal-form">
-          <div class="form-group">
-            <label for="updateTaskTitleInput">Task Name *</label>
-            <textarea id="updateTaskTitleInput" class="task-title-textarea" rows="3" placeholder="What needs to be done?" required></textarea>
-          </div>
-
-          <div class="form-group date-block">
-            <div class="date-header-row">
-              <label>Due Date</label>
-              <label class="time-toggle-label" id="updateTimeToggleWrapper">
-                <input type="checkbox" id="updateTaskIncludeTimeToggle" />
-                <span>Include Time</span>
-              </label>
-            </div>
-
-            <div class="modal-date-shortcuts" id="updateModalDateShortcuts">
-              <button type="button" class="modal-action-btn date-btn" data-date="nodue">
-                <i class="fa-solid fa-calendar-xmark"></i> No Due
-              </button>
-              <button type="button" class="modal-action-btn date-btn" data-date="today">
-                <i class="fa-regular fa-calendar-check"></i> Today
-              </button>
-              <button type="button" class="modal-action-btn date-btn" data-date="tomorrow">
-                <i class="fa-regular fa-calendar-plus"></i> Tomorrow
-              </button>
-              <button type="button" class="modal-action-btn date-btn" data-date="custom">
-                <i class="fa-regular fa-calendar-days"></i> Custom
-              </button>
-            </div>
-
-            <div class="date-inputs-row" style="margin-top: 6px;">
-              <input type="date" id="updateTaskDateInput" />
-              <input type="time" id="updateTaskTimeInput" class="time-input hidden" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Priority</label>
-            <input type="hidden" id="updateTaskPriorityInput" value="Medium" />
-            <div class="modal-prio-shortcuts" id="updateModalPrioShortcuts">
-              <button type="button" class="modal-action-btn prio-btn prio-btn-critical" data-prio="Critical">
-                <i class="fa-solid fa-angles-up"></i> Critical
-              </button>
-              <button type="button" class="modal-action-btn prio-btn prio-btn-high" data-prio="High">
-                <i class="fa-solid fa-chevron-up"></i> High
-              </button>
-              <button type="button" class="modal-action-btn prio-btn prio-btn-medium" data-prio="Medium">
-                <i class="fa-solid fa-equals"></i> Medium
-              </button>
-              <button type="button" class="modal-action-btn prio-btn prio-btn-low" data-prio="Low">
-                <i class="fa-solid fa-chevron-down"></i> Low
-              </button>
-              <button type="button" class="modal-action-btn prio-btn prio-btn-lowest" data-prio="Lowest">
-                <i class="fa-solid fa-angles-down"></i> Lowest
-              </button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="updateTaskDescInput">Description (Optional)</label>
-            <textarea id="updateTaskDescInput" rows="2" placeholder="Add extra context or notes..."></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="updateTaskUrlInput">URL (Optional)</label>
-            <input type="url" id="updateTaskUrlInput" placeholder="https://..." autocomplete="off" />
-          </div>
-
-          <div class="form-group">
-            <label>Person</label>
-            <div class="person-field-pill">
-              <i class="fa-solid fa-user-circle"></i>
-              <span id="updatePersonNameDisplay">Paresh Bafna</span>
-            </div>
-          </div>
-
-          <div class="modal-footer single-row-footer">
-            <button type="button" id="cancelUpdateModalBtn" class="action-btn secondary-btn modal-btn">Cancel</button>
-            <button type="submit" id="submitUpdateTaskBtn" class="action-btn primary-btn modal-btn">
-              <i class="fa-solid fa-floppy-disk"></i>
-              <span>Update Task</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `;
-
+  const res = await fetch("./views/master-view/features/task-update/task-update.html");
+  const modalHtml = await res.text();
   document.body.insertAdjacentHTML("beforeend", modalHtml);
   updateModalEl = document.getElementById("updateTaskModal");
 
@@ -273,8 +173,8 @@ function ensureUpdateModalCreated() {
   });
 }
 
-export function openUpdateTaskModal(task, onDone) {
-  ensureUpdateModalCreated();
+export async function openUpdateTaskModal(task, onDone) {
+  await ensureUpdateModalCreated();
   currentTask = task;
   onTaskUpdatedCallback = onDone;
 

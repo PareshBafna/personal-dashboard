@@ -1,3 +1,5 @@
+// File: server.js
+
 import dns from "node:dns";
 dns.setDefaultResultOrder("ipv4first");
 
@@ -31,7 +33,7 @@ app.use("/notion", express.static(path.join(__dirname, "services", "notion")));
 
 // Default redirect
 app.get("/", (req, res) => {
-  res.redirect("/services/notion/task-tracker/task-tracker.html");
+  res.redirect("/services/notion/pages/task-tracker/task-tracker.html");
 });
 
 const PORT = 3000;

@@ -1,0 +1,35 @@
+<!-- File: services/notion/pages/task-tracker/views/master-view/task-card/task-card.html -->
+<template id="master-task-card-template">
+  <div class="checklist-item" data-id="">
+    <div class="item-text-wrap">
+      <div class="task-info-section">
+        <div class="task-info-top-row">
+          <div class="item-title-with-icon">
+            <i class="fa-solid fa-circle-check task-title-icon"></i>
+            <span class="item-title"></span>
+          </div>
+          <div class="item-top-right-actions">
+            <button type="button" class="card-delete-btn" data-action="delete" title="Delete Task">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+        <div class="item-submeta">
+          <span class="date-highlight-badge">
+            <i class="fa-regular fa-calendar"></i><span class="date-text"></span>
+          </span>
+          <span class="task-priority"></span>
+        </div>
+      </div>
+
+      <div class="task-card-divider"></div>
+
+      <div class="task-actions-section">
+        <div class="item-date-shortcuts"></div>
+        <div class="item-prio-shortcuts"></div>
+        <div class="item-status-actions"></div>
+        <div class="item-notion-action"></div>
+      </div>
+    </div>
+  </div>
+</template>

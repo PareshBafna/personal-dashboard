@@ -1,5 +1,4 @@
-// File: services/notion/task-tracker/views/master-view/features/task-delete/task-delete.js
-// Handles soft-deletion confirmation and Notion page archive requests via /api/notion/delete-page
+// File: services/notion/pages/task-tracker/views/master-view/features/task-delete/task-delete.js
 
 import { showToast } from "../../../../../../common/features/toast/toast.js";
 
@@ -7,37 +6,11 @@ let deleteModalEl = null;
 let pendingDeleteId = null;
 let pendingOnSuccess = null;
 
-function ensureDeleteModalCreated() {
+async function ensureDeleteModalCreated() {
   if (deleteModalEl) return;
 
-  const modalHtml = `
-    <div id="deleteConfirmModal" class="modal-backdrop">
-      <div class="modal-card delete-confirm-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <i class="fa-solid fa-triangle-exclamation" style="color: #f43f5e; font-size: 1.1rem;"></i>
-            <h3>Delete Task</h3>
-          </div>
-          <button type="button" id="closeDeleteModalCrossBtn" class="modal-cross-btn" title="Close">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="modal-form delete-confirm-body">
-          <p class="delete-confirm-text">Are you sure you want to delete this task? This action cannot be undone.</p>
-
-          <div class="single-row-footer">
-            <button type="button" id="cancelDeleteModalBtn" class="action-btn secondary-btn modal-btn">Cancel</button>
-            <button type="button" id="confirmDeleteModalBtn" class="action-btn modal-btn btn-danger-delete">
-              <i class="fa-solid fa-trash"></i>
-              <span>Delete</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
+  const res = await fetch("./views/master-view/features/task-delete/task-delete.html");
+  const modalHtml = await res.text();
   document.body.insertAdjacentHTML("beforeend", modalHtml);
   deleteModalEl = document.getElementById("deleteConfirmModal");
 
@@ -67,9 +40,7 @@ function ensureDeleteModalCreated() {
       const res = await fetch("/api/notion/delete-page", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pageId: targetId
-        })
+        body: JSON.stringify({ pageId: targetId })
       });
 
       if (!res.ok) throw new Error(await res.text());
@@ -86,8 +57,8 @@ function ensureDeleteModalCreated() {
   });
 }
 
-export function deleteTask(pageId, onSuccess) {
-  ensureDeleteModalCreated();
+export async function deleteTask(pageId, onSuccess) {
+  await ensureDeleteModalCreated();
   pendingDeleteId = pageId;
   pendingOnSuccess = onSuccess;
   deleteModalEl.classList.add("show");

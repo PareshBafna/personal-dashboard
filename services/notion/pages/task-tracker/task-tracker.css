@@ -1,17 +1,22 @@
 /* File: services/notion/pages/task-tracker/task-tracker.css */
-/* Main page layout and CSS bundle aggregating all modular stylesheets */
+/* Aggregated layout styles matching complete modular directory structure */
 
 @import "../../common/features/toast/toast.css";
 @import "./features/filter-toolbar/filter-toolbar.css";
 @import "./features/task-add/task-add.css";
-@import "./views/master-view/task-card/task-card.css";
 @import "./views/master-view/master-view.css";
+@import "./views/master-view/task-card/task-card.css";
+@import "./views/master-view/features/date-update/date-update.css";
+@import "./views/master-view/features/priority-update/priority-update.css";
+@import "./views/master-view/features/status-update/status-update.css";
 @import "./views/master-view/features/task-delete/task-delete.css";
+@import "./views/master-view/features/task-duplicate/task-duplicate.css";
 @import "./views/master-view/features/task-update/task-update.css";
 @import "./views/master-view/features/custom-date-update/custom-date-update.css";
 @import "./views/master-view/features/telemetry/telemetry.css";
-@import "./views/inbox-view/task-card/task-card.css";
+
 @import "./views/inbox-view/inbox-view.css";
+@import "./views/inbox-view/task-card/task-card.css";
 @import "./views/inbox-view/features/due-date-fix/due-date-fix.css";
 @import "./views/inbox-view/features/telemetry/telemetry.css";
 
@@ -125,22 +130,10 @@ h1 { font-size: 1.25rem; font-weight: 800; background: linear-gradient(180deg, #
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
-.checklist-container::-webkit-scrollbar {
-  width: 5px;
-}
-
-.checklist-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.checklist-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 10px;
-}
-
-.checklist-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
+.checklist-container::-webkit-scrollbar { width: 5px; }
+.checklist-container::-webkit-scrollbar-track { background: transparent; }
+.checklist-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+.checklist-container::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
 
 @media (min-width: 640px) {
   body { padding: 20px 24px; }
