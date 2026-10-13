@@ -1,6 +1,6 @@
 /* File: services/notion/pages/task-tracker/task-tracker.css */
 
-@import "../../common/features/toast/toast.css";
+@import "../../features/toast/toast.css";
 @import "./features/view-tabs/view-tabs.css";
 @import "./features/task-add/task-add.css";
 

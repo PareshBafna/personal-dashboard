@@ -1,7 +1,7 @@
 // File: services/notion/pages/task-tracker/views/master-view/features/task-update/task-update.js
 
 import { schemaProps } from "../../api/api.client.js";
-import { showToast } from "../../../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../../../features/toast/toast.js";
 
 let updateModalEl = null;
 let currentTask = null;

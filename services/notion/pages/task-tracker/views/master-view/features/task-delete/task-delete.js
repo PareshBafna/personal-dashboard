@@ -1,6 +1,6 @@
 // File: services/notion/pages/task-tracker/views/master-view/features/task-delete/task-delete.js
 
-import { showToast } from "../../../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../../../features/toast/toast.js";
 
 let deleteModalEl = null;
 let pendingDeleteId = null;

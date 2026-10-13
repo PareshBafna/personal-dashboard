@@ -1,8 +1,7 @@
-// File: services/notion/task-tracker/views/master-view/features/status-update/status-update.js
-// Handles status mutations and in-progress/done transitions for Master View
+// File: services/notion/pages/task-tracker/views/master-view/features/status-update/status-update.js
 
 import { schemaProps } from "../../api/api.client.js";
-import { showToast } from "../../../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../../../features/toast/toast.js";
 
 export async function updateTaskStatus(task, targetStatus, onDone) {
   const prevStatus = task.status;

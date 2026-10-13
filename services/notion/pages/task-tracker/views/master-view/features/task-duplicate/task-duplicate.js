@@ -1,10 +1,8 @@
-// File: services/notion/task-tracker/views/master-view/features/task-duplicate/task-duplicate.js
-// Duplicates Notion task page with properties carried over and appended title suffix
+// File: services/notion/pages/task-tracker/views/master-view/features/task-duplicate/task-duplicate.js
 
 import { TASK_DB_ID, parseTask } from "../../api/api.client.js";
-import { showToast } from "../../../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../../../features/toast/toast.js";
 
-// Strip read-only properties before creating page
 function prepareDuplicateProperties(task) {
   const originalProps = task.properties || {};
   const cleanProps = {};
@@ -122,7 +120,6 @@ function prepareDuplicateProperties(task) {
     }
   }
 
-  // Ensure Priority is preserved if task has explicit priority property
   if (!priorityKey && task.priority) {
     cleanProps["Priority"] = { select: { name: task.priority } };
   }

@@ -2,7 +2,7 @@
 // Handles modal state, payload building, and task insertion into Notion
 
 import { TASK_DB_ID, schemaProps, pareshUserId, parseTask } from "../../views/master-view/api/api.client.js";
-import { showToast } from "../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../features/toast/toast.js";
 
 export function initTaskAdd(onTaskCreated) {
   const openBtn = document.getElementById("openNewTaskBtn");
