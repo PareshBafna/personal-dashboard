@@ -2,7 +2,7 @@
 // Duplicates Notion task page with properties carried over and appended title suffix
 
 import { TASK_DB_ID, parseTask } from "../../api/api.client.js";
-import { showToast } from "../../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../../../common/features/toast/toast.js";
 
 // Strip read-only properties before creating page
 function prepareDuplicateProperties(task) {

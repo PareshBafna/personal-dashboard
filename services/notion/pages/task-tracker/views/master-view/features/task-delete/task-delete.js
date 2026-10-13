@@ -1,7 +1,7 @@
 // File: services/notion/task-tracker/views/master-view/features/task-delete/task-delete.js
 // Handles soft-deletion confirmation and Notion page archive requests via /api/notion/delete-page
 
-import { showToast } from "../../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../../../common/features/toast/toast.js";
 
 let deleteModalEl = null;
 let pendingDeleteId = null;

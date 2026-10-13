@@ -2,7 +2,7 @@
 // STRICTLY handles update modal form creation, field population, and Notion page saves
 
 import { schemaProps } from "../../api/api.client.js";
-import { showToast } from "../../../../../common/features/toast/toast.js";
+import { showToast } from "../../../../../../common/features/toast/toast.js";
 
 let updateModalEl = null;
 let currentTask = null;
