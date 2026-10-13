@@ -17,23 +17,26 @@
   <div class="glow-bg"></div>
 
   <div class="hub-wrapper">
-    <header class="hub-header">
+    <header class="tracker-header">
       <div class="brand">
         <div class="brand-icon">
-          <i class="fa-solid fa-calendar-day" style="font-size: 1rem; color: #ffffff;"></i>
+          <i class="fa-solid fa-calendar-day" id="brandIcon"></i>
         </div>
         <div>
           <h1 id="tabTitle">Today</h1>
         </div>
       </div>
 
-      <button type="button" class="header-sync-btn" id="headerSyncBtn" title="Sync Database">
-        <i class="fa-solid fa-rotate"></i>
-        <span>Sync</span>
-      </button>
+      <div class="header-actions">
+        <button id="headerSyncBtn" class="action-btn secondary-btn" title="Sync live tasks">
+          <i class="fa-solid fa-rotate refresh-icon"></i>
+          <span>Sync</span>
+        </button>
+      </div>
     </header>
 
     <div id="telemetrySlot"></div>
+    <div id="toolbarSlot"></div>
 
     <main id="contentContainer" class="hub-content">
       <section id="tabToday" class="hub-tab-panel active">

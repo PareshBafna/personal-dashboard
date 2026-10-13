@@ -1,19 +1,94 @@
-/* File: services/notion/task-tracker/common/features/filter-toolbar/filter-toolbar.css */
-/* Styles for global task searching and status/view filter pills */
+/* File: services/notion/pages/task-tracker/features/filter-toolbar/filter-toolbar.css */
 
-.toolbar { display: flex; flex-direction: column; gap: 8px; width: 100%; flex-shrink: 0; }
-.search-box { display: flex; align-items: center; gap: 8px; background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 0 12px; height: 38px; border-radius: 10px; width: 100%; color: var(--text-muted); }
-.search-box input { background: transparent; border: none; outline: none; color: #fff; font-size: 0.85rem; width: 100%; }
-.clear-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; }
-.clear-btn.hidden { display: none; }
-.filter-pills-wrap { width: 100%; overflow-x: auto; scrollbar-width: none; }
-.filter-pills-wrap::-webkit-scrollbar { display: none; }
-.filter-pills { display: inline-flex; gap: 4px; background: rgba(255, 255, 255, 0.03); padding: 3px; border-radius: 10px; border: 1px solid var(--panel-border); min-width: 100%; }
-.pill { flex: 1 1 auto; background: transparent; border: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 600; padding: 6px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap; text-align: center; }
-.pill.active { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
 
-@media (min-width: 640px) {
-  .toolbar { flex-direction: row; }
-  .search-box { max-width: 320px; }
-  .filter-pills-wrap, .filter-pills { width: auto; }
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  pointer-events: none;
+}
+
+.task-search-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 8px 36px 8px 34px;
+  font-size: 0.8rem;
+  color: #fff;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s var(--ease);
+}
+
+.task-search-input:focus {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.task-search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.search-clear-btn:hover {
+  color: #fff;
+}
+
+.view-switch-pills {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.view-pill-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-pill-btn:hover {
+  color: #fff;
+}
+
+.view-pill-btn.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
 }

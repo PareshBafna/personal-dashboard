@@ -1,6 +1,7 @@
 /* File: services/notion/views/today-view/today-view.css */
 
 @import "./features/telemetry/telemetry.css";
+@import "./features/search-bar/search-bar.css";
 @import "./features/status-update/status-update.css";
 @import "./features/sync-data/sync-data.css";
 @import "./task-card/task-card.css";
@@ -230,19 +231,6 @@
   background: rgba(251, 113, 133, 0.15);
   color: var(--c-todo);
   border: 1px solid var(--c-todo);
-  padding: 2px 7px;
-  border-radius: 5px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
-  font-weight: 700;
-  margin-left: 0 !important;
-  flex-shrink: 0;
-}
-
-.status-badge-done {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--c-done);
-  border: 1px solid var(--c-done);
   padding: 2px 7px;
   border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;

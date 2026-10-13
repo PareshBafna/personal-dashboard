@@ -2,6 +2,7 @@
 
 import { initTelemetry, updateTelemetryCounts } from "./views/today-view/features/telemetry/telemetry.js";
 import { initSyncButton, setSyncButtonState } from "./views/today-view/features/sync-data/sync-data.js";
+import { initSearchBar, getSearchQuery } from "./views/today-view/features/search-bar/search-bar.js";
 import { fetchTodayTasks } from "./views/today-view/api/api.client.js";
 import { renderTodayView } from "./views/today-view/today-view.js";
 import { updateTaskStatus } from "./views/today-view/features/status-update/status-update.js";
@@ -19,21 +20,29 @@ let allUpcomingTasks = [];
 const todayPanel = document.getElementById("tabToday");
 const upcomingPanel = document.getElementById("tabUpcoming");
 const tabTitle = document.getElementById("tabTitle");
+const brandIcon = document.getElementById("brandIcon");
 const telemetrySlot = document.getElementById("telemetrySlot");
+const toolbarSlot = document.getElementById("toolbarSlot");
 const headerSyncBtn = document.getElementById("headerSyncBtn");
 
 const TZ = "Asia/Kolkata";
-const TAB_TITLES = {
-  today: "Today",
-  upcoming: "Upcoming",
-  all: "All Records",
-  list: "Pages"
+const TAB_CONFIG = {
+  today: { title: "Today", icon: "fa-calendar-day" },
+  upcoming: { title: "Upcoming", icon: "fa-calendar-week" },
+  all: { title: "All Records", icon: "fa-layer-group" },
+  list: { title: "Pages", icon: "fa-list-ul" }
 };
 
 function getTomorrowDateString() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   return d.toLocaleDateString("en-CA", { timeZone: TZ });
+}
+
+function filterTasksBySearch(tasks) {
+  const q = getSearchQuery();
+  if (!q) return tasks;
+  return tasks.filter(t => t.title && t.title.toLowerCase().includes(q));
 }
 
 function computeAndRenderTodayMetrics(tasks) {
@@ -63,6 +72,13 @@ function computeAndRenderUpcomingMetrics(tasks) {
   updateUpcomingTelemetryCounts(total, tomorrowCount, futureCount);
 }
 
+function renderTodayPanel() {
+  if (!todayPanel) return;
+  const filtered = filterTasksBySearch(allTodayTasks);
+  todayPanel.innerHTML = renderTodayView(filtered);
+  computeAndRenderTodayMetrics(allTodayTasks);
+}
+
 async function loadTodayTasks() {
   if (!todayPanel) return;
   setSyncButtonState(headerSyncBtn, true);
@@ -74,8 +90,7 @@ async function loadTodayTasks() {
   `;
   try {
     allTodayTasks = await fetchTodayTasks();
-    todayPanel.innerHTML = renderTodayView(allTodayTasks);
-    computeAndRenderTodayMetrics(allTodayTasks);
+    renderTodayPanel();
   } catch (err) {
     console.error("Today view fetch error:", err);
     todayPanel.innerHTML = `
@@ -117,14 +132,12 @@ async function loadUpcomingTasks() {
   }
 }
 
-// Init Global Header Sync Button
 initSyncButton(headerSyncBtn, () => {
   const currentTab = document.querySelector(".bottom-nav .nav-item.active")?.dataset?.tab;
   if (currentTab === "today") loadTodayTasks();
   if (currentTab === "upcoming") loadUpcomingTasks();
 });
 
-// Bottom navigation switching
 document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
   btn.addEventListener("click", () => {
     const tabKey = btn.dataset.tab;
@@ -144,21 +157,27 @@ document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
       activePanel.style.display = "flex";
     }
 
-    if (tabTitle && TAB_TITLES[tabKey]) {
-      tabTitle.textContent = TAB_TITLES[tabKey];
+    if (tabTitle && TAB_CONFIG[tabKey]) {
+      tabTitle.textContent = TAB_CONFIG[tabKey].title;
+    }
+    if (brandIcon && TAB_CONFIG[tabKey]) {
+      brandIcon.className = `fa-solid ${TAB_CONFIG[tabKey].icon}`;
     }
 
     if (tabKey === "today") {
       telemetrySlot.style.display = "block";
+      toolbarSlot.style.display = "block";
       headerSyncBtn.style.display = "inline-flex";
       initTelemetry(telemetrySlot);
+      initSearchBar(toolbarSlot, () => renderTodayPanel());
       if (allTodayTasks.length > 0) {
-        computeAndRenderTodayMetrics(allTodayTasks);
+        renderTodayPanel();
       } else {
         loadTodayTasks();
       }
     } else if (tabKey === "upcoming") {
       telemetrySlot.style.display = "block";
+      toolbarSlot.style.display = "none";
       headerSyncBtn.style.display = "inline-flex";
       initUpcomingTelemetry(telemetrySlot);
       if (allUpcomingTasks.length > 0) {
@@ -168,12 +187,12 @@ document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
       }
     } else {
       telemetrySlot.style.display = "none";
+      toolbarSlot.style.display = "none";
       headerSyncBtn.style.display = "none";
     }
   });
 });
 
-// Event Delegation for Today View
 if (todayPanel) {
   todayPanel.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-action='status']");
@@ -183,14 +202,12 @@ if (todayPanel) {
 
     setSyncButtonState(headerSyncBtn, true);
     updateTaskStatus(task, btn.dataset.target, () => {
-      todayPanel.innerHTML = renderTodayView(allTodayTasks);
-      computeAndRenderTodayMetrics(allTodayTasks);
+      renderTodayPanel();
       setSyncButtonState(headerSyncBtn, false);
     });
   });
 }
 
-// Event Delegation for Upcoming View
 if (upcomingPanel) {
   upcomingPanel.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-action='status']");
@@ -207,6 +224,7 @@ if (upcomingPanel) {
   });
 }
 
-// Initial Boot: Load Today
+// Initial Boot: Synchronous mount slots immediately, then fetch data
 initTelemetry(telemetrySlot);
+initSearchBar(toolbarSlot, () => renderTodayPanel());
 loadTodayTasks();

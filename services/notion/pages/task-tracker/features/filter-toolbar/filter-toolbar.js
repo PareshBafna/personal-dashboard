@@ -1,33 +1,47 @@
-// File: services/notion/task-tracker/common/features/filter-toolbar/filter-toolbar.js
-// State management for keyword search and active view/status filter pill
+// File: services/notion/pages/task-tracker/features/filter-toolbar/filter-toolbar.js
 
-export function initFilterToolbar(onFilterChange) {
-  const searchInput = document.getElementById("searchInput");
-  const clearSearchBtn = document.getElementById("clearSearchBtn");
+let onFilterChangeCallback = null;
+let currentStatus = "master";
+let currentQuery = "";
 
-  searchInput.addEventListener("input", (e) => {
-    clearSearchBtn.classList.toggle("hidden", !e.target.value.trim());
-    onFilterChange();
-  });
+export function initFilterToolbar(onChange) {
+  onFilterChangeCallback = onChange;
 
-  clearSearchBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    clearSearchBtn.classList.add("hidden");
-    onFilterChange();
-  });
+  const input = document.getElementById("taskSearchInput");
+  const clearBtn = document.getElementById("taskSearchClearBtn");
+  const pills = document.querySelectorAll(".view-pill-btn");
 
-  document.querySelectorAll("#statusFilterPills .pill").forEach(pill => {
+  if (input) {
+    input.addEventListener("input", (e) => {
+      currentQuery = e.target.value.trim().toLowerCase();
+      if (clearBtn) clearBtn.style.display = currentQuery ? "block" : "none";
+      if (typeof onFilterChangeCallback === "function") onFilterChangeCallback();
+    });
+  }
+
+  if (clearBtn && input) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      currentQuery = "";
+      clearBtn.style.display = "none";
+      input.focus();
+      if (typeof onFilterChangeCallback === "function") onFilterChangeCallback();
+    });
+  }
+
+  pills.forEach(pill => {
     pill.addEventListener("click", () => {
-      document.querySelectorAll("#statusFilterPills .pill").forEach(p => p.classList.remove("active"));
+      pills.forEach(p => p.classList.remove("active"));
       pill.classList.add("active");
-      onFilterChange();
+      currentStatus = pill.dataset.status || "master";
+      if (typeof onFilterChangeCallback === "function") onFilterChangeCallback();
     });
   });
 }
 
 export function getFilterState() {
   return {
-    query: (document.getElementById("searchInput")?.value || "").trim().toLowerCase(),
-    status: document.querySelector("#statusFilterPills .pill.active")?.dataset.status || "master"
+    status: currentStatus,
+    query: currentQuery
   };
 }

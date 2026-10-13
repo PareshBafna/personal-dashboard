@@ -1,72 +1,62 @@
 /* File: services/notion/views/today-view/features/telemetry/telemetry.css */
+/* 1:1 match with Master View telemetry metrics card */
 
-.telemetry-bar-container {
+.master-panel {
   width: 100%;
-  padding: 14px 16px 8px 16px;
-  box-sizing: border-box;
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--panel-border, rgba(255, 255, 255, 0.08));
-  border-radius: 12px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 8px 10px;
+  flex-shrink: 0;
   overflow: hidden;
   box-sizing: border-box;
 }
 
-.metric-card {
-  padding: 10px 8px;
+.panel-left {
+  width: 100%;
+}
+
+.single-line-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 6px;
+  width: 100%;
+  align-items: center;
+}
+
+.metric-block {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  text-align: center;
-  border-right: 1px solid var(--panel-border, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 6px 2px;
+  width: 100%;
   box-sizing: border-box;
 }
 
-.metric-card:last-child {
-  border-right: none;
-}
-
 .metric-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.05em;
-  color: var(--text-dim, #71717a);
-  font-weight: 700;
+  font-size: clamp(0.52rem, 1.8vw, 0.65rem);
   text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
-.metric-value {
-  font-size: 1.25rem;
-  font-weight: 800;
+.metric-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(1rem, 3.2vw, 1.35rem);
+  font-weight: 700;
   color: #ffffff;
-  line-height: 1.1;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
-.metric-value.metric-todo {
-  color: #fca5a5;
+.todo-num {
+  color: #fda4af !important;
 }
 
-.metric-value.metric-prog {
-  color: #fde047;
-}
-
-@media (max-width: 480px) {
-  .telemetry-bar-container {
-    padding: 10px 12px 6px 12px;
-  }
-  .metric-card {
-    padding: 8px 4px;
-  }
-  .metric-value {
-    font-size: 1.05rem;
-  }
+.prog-num {
+  color: #fde68a !important;
 }

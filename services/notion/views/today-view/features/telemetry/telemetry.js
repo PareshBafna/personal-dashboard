@@ -1,14 +1,29 @@
 // File: services/notion/views/today-view/features/telemetry/telemetry.js
 
-let cachedTelemetryHtml = "";
+const TELEMETRY_HTML = `
+<section class="master-panel">
+  <div class="panel-left">
+    <div class="metric-row single-line-metrics">
+      <div class="metric-block">
+        <span class="metric-label">Total</span>
+        <span id="metricTotal" class="metric-number">0</span>
+      </div>
+      <div class="metric-block">
+        <span class="metric-label">To Do</span>
+        <span id="metricTodo" class="metric-number todo-num">0</span>
+      </div>
+      <div class="metric-block">
+        <span class="metric-label">In Progress</span>
+        <span id="metricProg" class="metric-number prog-num">0</span>
+      </div>
+    </div>
+  </div>
+</section>
+`;
 
-export async function initTelemetry(containerEl) {
+export function initTelemetry(containerEl) {
   if (!containerEl) return;
-  if (!cachedTelemetryHtml) {
-    const res = await fetch("./views/today-view/features/telemetry/telemetry.html");
-    cachedTelemetryHtml = await res.text();
-  }
-  containerEl.innerHTML = cachedTelemetryHtml;
+  containerEl.innerHTML = TELEMETRY_HTML;
 }
 
 export function updateTelemetryCounts(total = 0, todo = 0, inProg = 0) {
