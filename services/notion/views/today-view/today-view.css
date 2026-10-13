@@ -1,5 +1,10 @@
 /* File: services/notion/views/today-view/today-view.css */
 
+@import "./features/telemetry/telemetry.css";
+@import "./features/status-update/status-update.css";
+@import "./features/sync-data/sync-data.css";
+@import "./task-card/task-card.css";
+
 :root {
   --c-pastdue: #f43f5e;
   --c-today: #eab308;
@@ -11,7 +16,6 @@
   --c-done: #10b981;
 }
 
-/* Tab Panel Base */
 #tabToday {
   display: none;
   width: 100%;
@@ -24,10 +28,6 @@
 #tabToday.active {
   display: flex !important;
 }
-
-/* ============================================================
-   ACCORDION SYSTEM (1:1 with Master View)
-============================================================ */
 
 #tabToday details {
   width: 100%;
@@ -53,7 +53,6 @@
   transform: rotate(180deg);
 }
 
-/* Stage 1 Groups */
 .stage1-group {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
@@ -110,7 +109,6 @@
   box-sizing: border-box;
 }
 
-/* Stage 2 Groups */
 .stage2-group {
   background: rgba(56, 189, 248, 0.03);
   border: 1px solid rgba(56, 189, 248, 0.15);
@@ -163,7 +161,6 @@
   box-sizing: border-box;
 }
 
-/* Stage 4 Columns Grid */
 .stage4-columns,
 .stage4-columns-past-due {
   display: grid;

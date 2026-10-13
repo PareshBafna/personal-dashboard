@@ -1,5 +1,4 @@
 // File: services/notion/views/today-view/today-view.js
-// 3-Level accordion: Level 1 (Past Due, Due Today) -> Level 2 (Task Tracker) -> Level 3 (In Progress, Not Started)
 
 import { renderTodayTaskCard, todayTaskComparator, toLocalDateString, getNativeDueDateRaw } from "./task-card/task-card.js";
 

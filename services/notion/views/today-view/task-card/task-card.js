@@ -1,5 +1,4 @@
 // File: services/notion/views/today-view/task-card/task-card.js
-// Renders stripped task card: no date shortcuts, no priority shortcuts. Status buttons + Notion button only.
 
 const PRIORITY_RANK = { critical: 1, high: 2, medium: 3, low: 4, lowest: 5 };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -58,17 +57,14 @@ export function formatTaskDate(task) {
   return out;
 }
 
-// Sorting: Tasks with Date & Time FIRST -> Tasks with Date only SECOND -> Due Date/Time -> Priority -> Title
 export function todayTaskComparator(a, b) {
   const rawA = getNativeDueDateRaw(a);
   const rawB = getNativeDueDateRaw(b);
   const hasTimeA = !!toLocalWallTime(rawA);
   const hasTimeB = !!toLocalWallTime(rawB);
 
-  // Date & Time before Date only
   if (hasTimeA !== hasTimeB) return hasTimeA ? -1 : 1;
 
-  // Compare full datetime key
   const dateA = toLocalDateString(rawA) || "9999-99-99";
   const dateB = toLocalDateString(rawB) || "9999-99-99";
   const timeA = toLocalWallTime(rawA) || "99:99";
@@ -133,7 +129,6 @@ export function renderTodayTaskCard(task, overrideCol = null) {
         <div class="task-card-divider"></div>
 
         <div class="task-actions-section">
-          <!-- Status Actions Only -->
           <div class="item-status-actions">
             ${isCompleted ? `
               <button type="button" class="status-action-btn btn-to-todo" data-action="status" data-target="Not Started" data-id="${task.id}">
@@ -159,7 +154,6 @@ export function renderTodayTaskCard(task, overrideCol = null) {
             `)}
           </div>
 
-          <!-- Open In Notion Only -->
           <div class="item-notion-action">
             <a href="${task.url}" target="_blank" class="open-notion-btn" style="width: 100%; justify-content: center;">
               <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">

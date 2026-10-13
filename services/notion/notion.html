@@ -10,12 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./notion.css">
-  <link rel="stylesheet" href="./views/today-view/features/telemetry/telemetry.css">
   <link rel="stylesheet" href="./views/today-view/today-view.css">
-  <link rel="stylesheet" href="./views/today-view/task-card/task-card.css">
-  <link rel="stylesheet" href="./views/upcoming-view/features/telemetry/telemetry.css">
   <link rel="stylesheet" href="./views/upcoming-view/upcoming-view.css">
-  <link rel="stylesheet" href="./views/upcoming-view/task-card/task-card.css">
 </head>
 <body>
   <div class="glow-bg"></div>
@@ -31,18 +27,15 @@
         </div>
       </div>
 
-      <!-- Header Sync Pill -->
       <button type="button" class="header-sync-btn" id="headerSyncBtn" title="Sync Database">
         <i class="fa-solid fa-rotate"></i>
         <span>Sync</span>
       </button>
     </header>
 
-    <!-- Shared Telemetry Slot -->
     <div id="telemetrySlot"></div>
 
     <main id="contentContainer" class="hub-content">
-      <!-- 1. TODAY TAB (ACTIVE BY DEFAULT) -->
       <section id="tabToday" class="hub-tab-panel active">
         <div class="empty-placeholder">
           <i class="fa-solid fa-calendar-day"></i>
@@ -51,7 +44,6 @@
         </div>
       </section>
 
-      <!-- 2. UPCOMING TAB -->
       <section id="tabUpcoming" class="hub-tab-panel">
         <div class="empty-placeholder">
           <i class="fa-solid fa-calendar-week"></i>
@@ -60,7 +52,6 @@
         </div>
       </section>
 
-      <!-- 3. ALL TAB -->
       <section id="tabAll" class="hub-tab-panel">
         <div class="empty-placeholder">
           <i class="fa-solid fa-layer-group"></i>
@@ -69,7 +60,6 @@
         </div>
       </section>
 
-      <!-- 4. LIST TAB -->
       <section id="tabList" class="hub-tab-panel">
         <div class="pages-grid">
           <a href="./pages/databases/databases.html" class="page-card">
@@ -97,7 +87,6 @@
       </section>
     </main>
 
-    <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
       <button type="button" class="nav-item active" data-tab="today">
         <i class="fa-solid fa-calendar-day"></i>
