@@ -1,9 +1,9 @@
-/* File: services/notion/task-tracker/task-tracker.css */
+/* File: services/notion/pages/task-tracker/task-tracker.css */
 /* Main page layout and CSS bundle aggregating all modular stylesheets */
 
-@import "../common/features/toast/toast.css";
-@import "./common/features/filter-toolbar/filter-toolbar.css";
-@import "./common/features/task-add/task-add.css";
+@import "../../common/features/toast/toast.css";
+@import "./features/filter-toolbar/filter-toolbar.css";
+@import "./features/task-add/task-add.css";
 @import "./views/master-view/task-card/task-card.css";
 @import "./views/master-view/master-view.css";
 @import "./views/master-view/features/task-delete/task-delete.css";

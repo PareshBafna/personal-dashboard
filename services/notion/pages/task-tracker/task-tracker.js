@@ -1,11 +1,11 @@
-// File: services/notion/task-tracker/task-tracker.js
+// File: services/notion/pages/task-tracker/task-tracker.js
 // Pure view connector and global event delegator for Inbox and Master views
 
 import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.client.js";
 import { fetchInboxTasks } from "./views/inbox-view/api/api.client.js";
 import { updateMasterTelemetry } from "./views/master-view/features/telemetry/telemetry.js";
 import { updateTelemetry as updateInboxTelemetry } from "./views/inbox-view/features/telemetry/telemetry.js";
-import { initFilterToolbar, getFilterState } from "./common/features/filter-toolbar/filter-toolbar.js";
+import { initFilterToolbar, getFilterState } from "./features/filter-toolbar/filter-toolbar.js";
 import { 
   renderMasterView, 
   attachDateAccordionSync, 
@@ -24,7 +24,7 @@ import {
 import { renderTaskCard, multiLevelTaskComparator } from "./views/master-view/task-card/task-card.js";
 import { renderInboxView, isInboxTask } from "./views/inbox-view/inbox-view.js";
 import { triggerFixDueDate } from "./views/inbox-view/features/due-date-fix/due-date-fix.js";
-import { initTaskAdd } from "./common/features/task-add/task-add.js";
+import { initTaskAdd } from "./features/task-add/task-add.js";
 
 let allMasterTasks = [];
 let allInboxTasks = [];
@@ -33,8 +33,8 @@ const container = document.getElementById("tasksContainer");
 
 async function loadFragments() {
   document.getElementById("telemetrySlot").innerHTML = await (await fetch("./views/master-view/features/telemetry/telemetry.html")).text();
-  document.getElementById("toolbarSlot").innerHTML = await (await fetch("./common/features/filter-toolbar/filter-toolbar.html")).text();
-  document.getElementById("addTaskSlot").innerHTML = await (await fetch("./common/features/task-add/task-add.html")).text();
+  document.getElementById("toolbarSlot").innerHTML = await (await fetch("./features/filter-toolbar/filter-toolbar.html")).text();
+  document.getElementById("addTaskSlot").innerHTML = await (await fetch("./features/task-add/task-add.html")).text();
   await initMasterViewFeatures((task, dateStr) => updateTaskDueDate(task, dateStr, () => renderFull(false)));
 }
 

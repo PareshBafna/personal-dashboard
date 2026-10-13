@@ -1,7 +1,7 @@
-// File: services/notion/task-tracker/common/features/task-add/task-add.js
+// File: services/notion/pages/task-tracker/features/task-add/task-add.js
 // Handles modal state, payload building, and task insertion into Notion
 
-import { TASK_DB_ID, schemaProps, pareshUserId, parseTask } from "../../../views/master-view/api/api.client.js";
+import { TASK_DB_ID, schemaProps, pareshUserId, parseTask } from "../../views/master-view/api/api.client.js";
 import { showToast } from "../../../../common/features/toast/toast.js";
 
 export function initTaskAdd(onTaskCreated) {
