@@ -4,7 +4,9 @@ import { fetchAllTasks, resolvePareshUser } from "./views/master-view/api/api.cl
 import { fetchInboxTasks } from "./views/inbox-view/api/api.client.js";
 import { updateMasterTelemetry } from "./views/master-view/features/telemetry/telemetry.js";
 import { updateTelemetry as updateInboxTelemetry } from "./views/inbox-view/features/telemetry/telemetry.js";
-import { initFilterToolbar, getFilterState } from "./features/filter-toolbar/filter-toolbar.js";
+import { initViewTabs, getActiveTab } from "./features/view-tabs/view-tabs.js";
+import { initMasterSearchBar, getMasterSearchQuery } from "./views/master-view/features/search-bar/search-bar.js";
+import { initInboxSearchBar, getInboxSearchQuery } from "./views/inbox-view/features/search-bar/search-bar.js";
 import { 
   renderMasterView, 
   attachDateAccordionSync, 
@@ -27,73 +29,102 @@ import { initTaskAdd } from "./features/task-add/task-add.js";
 let allMasterTasks = [];
 let allInboxTasks = [];
 let isInboxLoaded = false;
-let currentTelemetryType = "master";
-let telemetryHtmlCache = { master: "", inbox: "" };
+let currentViewType = "master";
+
+let fragmentCache = {
+  masterTel: "",
+  inboxTel: "",
+  masterSearch: "",
+  inboxSearch: "",
+  tabs: "",
+  add: ""
+};
 
 const container = document.getElementById("tasksContainer");
 
 async function loadFragments() {
-  const [masterTelHtml, inboxTelHtml, toolbarHtml, addHtml] = await Promise.all([
+  const [mTel, iTel, mSearch, iSearch, tabs, add] = await Promise.all([
     fetch("./views/master-view/features/telemetry/telemetry.html").then(r => r.text()),
     fetch("./views/inbox-view/features/telemetry/telemetry.html").then(r => r.text()),
-    fetch("./features/filter-toolbar/filter-toolbar.html").then(r => r.text()),
+    fetch("./views/master-view/features/search-bar/search-bar.html").then(r => r.text()),
+    fetch("./views/inbox-view/features/search-bar/search-bar.html").then(r => r.text()),
+    fetch("./features/view-tabs/view-tabs.html").then(r => r.text()),
     fetch("./features/task-add/task-add.html").then(r => r.text())
   ]);
 
-  telemetryHtmlCache.master = masterTelHtml;
-  telemetryHtmlCache.inbox = inboxTelHtml;
+  fragmentCache = {
+    masterTel: mTel,
+    inboxTel: iTel,
+    masterSearch: mSearch,
+    inboxSearch: iSearch,
+    tabs,
+    add
+  };
 
-  document.getElementById("telemetrySlot").innerHTML = masterTelHtml;
-  document.getElementById("toolbarSlot").innerHTML = toolbarHtml;
-  document.getElementById("addTaskSlot").innerHTML = addHtml;
+  document.getElementById("telemetrySlot").innerHTML = fragmentCache.masterTel;
+  document.getElementById("searchBarSlot").innerHTML = fragmentCache.masterSearch;
+  document.getElementById("viewTabsSlot").innerHTML = fragmentCache.tabs;
+  document.getElementById("addTaskSlot").innerHTML = fragmentCache.add;
 
+  initMasterSearchBar(() => renderFull(false));
+  initViewTabs(() => handleTabSwitch());
   await initMasterViewFeatures((task, dateStr) => updateTaskDueDate(task, dateStr, () => renderFull(false)));
 }
 
-function syncTelemetryView(type) {
-  if (currentTelemetryType === type) return;
-  const slot = document.getElementById("telemetrySlot");
-  if (slot && telemetryHtmlCache[type]) {
-    slot.innerHTML = telemetryHtmlCache[type];
-    currentTelemetryType = type;
+function syncHeaderSlots(view) {
+  if (currentViewType === view) return;
+  currentViewType = view;
+
+  const telSlot = document.getElementById("telemetrySlot");
+  const searchSlot = document.getElementById("searchBarSlot");
+
+  if (view === "inbox") {
+    if (telSlot) telSlot.innerHTML = fragmentCache.inboxTel;
+    if (searchSlot) {
+      searchSlot.innerHTML = fragmentCache.inboxSearch;
+      initInboxSearchBar(() => renderFull(false));
+    }
+  } else {
+    if (telSlot) telSlot.innerHTML = fragmentCache.masterTel;
+    if (searchSlot) {
+      searchSlot.innerHTML = fragmentCache.masterSearch;
+      initMasterSearchBar(() => renderFull(false));
+    }
   }
 }
 
-function filterByQuery(tasks) {
-  const { query } = getFilterState();
+function filterTasksByActiveSearch(tasks, view) {
+  const query = view === "inbox" ? getInboxSearchQuery() : getMasterSearchQuery();
   if (!query) return tasks;
   return tasks.filter(t => t.title && t.title.toLowerCase().includes(query));
 }
 
 async function handleTabSwitch() {
-  const { status } = getFilterState();
-  if (status === "inbox") {
-    syncTelemetryView("inbox");
-    if (!isInboxLoaded) {
-      if (container) {
-        container.innerHTML = `
-          <div style="display: flex; justify-content: center; align-items: center; padding: 60px; color: var(--text-dim); gap: 12px;">
-            <i class="fa-solid fa-rotate spin" style="font-size: 1.5rem;"></i>
-            <span>Loading Inbox tasks...</span>
-          </div>
-        `;
-      }
-      allInboxTasks = await fetchInboxTasks();
-      isInboxLoaded = true;
+  const status = getActiveTab();
+  syncHeaderSlots(status);
+
+  if (status === "inbox" && !isInboxLoaded) {
+    if (container) {
+      container.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; padding: 60px; color: var(--text-dim); gap: 12px;">
+          <i class="fa-solid fa-rotate spin" style="font-size: 1.5rem;"></i>
+          <span>Loading Inbox tasks...</span>
+        </div>
+      `;
     }
-  } else {
-    syncTelemetryView("master");
+    allInboxTasks = await fetchInboxTasks();
+    isInboxLoaded = true;
   }
   renderFull(true);
 }
 
 function renderFull(isHardBoot = false) {
   if (!container) return;
-  const { status } = getFilterState();
+  const status = getActiveTab();
 
   if (status === "inbox") {
-    syncTelemetryView("inbox");
-    const filteredInbox = filterByQuery(allInboxTasks).filter(isInboxTask);
+    syncHeaderSlots("inbox");
+    const filteredInbox = filterTasksByActiveSearch(allInboxTasks, "inbox").filter(isInboxTask);
     updateInboxTelemetry(filteredInbox);
     const prevScroll = container.scrollTop;
 
@@ -120,8 +151,8 @@ function renderFull(isHardBoot = false) {
     return;
   }
 
-  syncTelemetryView("master");
-  const filteredMaster = filterByQuery(allMasterTasks);
+  syncHeaderSlots("master");
+  const filteredMaster = filterTasksByActiveSearch(allMasterTasks, "master");
   updateMasterTelemetry(filteredMaster);
   const prevScroll = container.scrollTop;
 
@@ -214,7 +245,7 @@ async function syncData(isHardBoot = false) {
   if (refBtn) refBtn.classList.add("spinning");
 
   try {
-    const { status } = getFilterState();
+    const status = getActiveTab();
     if (status === "inbox") {
       allInboxTasks = await fetchInboxTasks();
       isInboxLoaded = true;
@@ -231,7 +262,6 @@ async function syncData(isHardBoot = false) {
 
 (async () => {
   await loadFragments();
-  initFilterToolbar(() => handleTabSwitch());
   initTaskAdd(() => syncData(false));
   document.getElementById("refreshBtn").addEventListener("click", () => syncData(false));
   await resolvePareshUser();

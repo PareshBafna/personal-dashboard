@@ -9,10 +9,8 @@ import { updateTaskStatus } from "./views/today-view/features/status-update/stat
 import { toLocalDateString, getNativeDueDateRaw } from "./views/today-view/task-card/task-card.js";
 
 let allTodayTasks = [];
-let allUpcomingTasks = [];
 
 const todayPanel = document.getElementById("tabToday");
-const upcomingPanel = document.getElementById("tabUpcoming");
 const tabTitle = document.getElementById("tabTitle");
 const brandIcon = document.getElementById("brandIcon");
 const telemetrySlot = document.getElementById("telemetrySlot");
@@ -27,6 +25,13 @@ const TAB_CONFIG = {
   list: { title: "Pages", icon: "fa-list-ul" }
 };
 
+async function loadFragments() {
+  await Promise.all([
+    initTelemetry(telemetrySlot),
+    initSearchBar(toolbarSlot, () => renderTodayPanel())
+  ]);
+}
+
 function filterTasksBySearch(tasks) {
   const q = getSearchQuery();
   if (!q) return tasks;
@@ -35,18 +40,18 @@ function filterTasksBySearch(tasks) {
 
 function computeAndRenderTodayMetrics(tasks) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
-  const visibleTasks = (tasks || []).filter(t => {
-    if (t.isDone) return false;
+  const relevantTasks = (tasks || []).filter(t => {
     const rawDue = getNativeDueDateRaw(t);
     const dOnly = toLocalDateString(rawDue);
     return dOnly && dOnly <= today;
   });
 
-  const total = visibleTasks.length;
-  const inProg = visibleTasks.filter(t => (t.status || "").toLowerCase().includes("progress")).length;
-  const todo = total - inProg;
+  const total = relevantTasks.length;
+  const completed = relevantTasks.filter(t => t.isDone).length;
+  const inProg = relevantTasks.filter(t => !t.isDone && (t.status || "").toLowerCase().includes("progress")).length;
+  const todo = relevantTasks.filter(t => !t.isDone && !(t.status || "").toLowerCase().includes("progress")).length;
 
-  updateTelemetryCounts(total, todo, inProg);
+  updateTelemetryCounts(total, todo, inProg, completed);
 }
 
 function renderTodayPanel() {
@@ -82,15 +87,13 @@ async function loadTodayTasks() {
   }
 }
 
-// Global Sync Handler
 initSyncButton(headerSyncBtn, () => {
   const currentTab = document.querySelector(".bottom-nav .nav-item.active")?.dataset?.tab;
   if (currentTab === "today") loadTodayTasks();
 });
 
-// Bottom navigation switching
 document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const tabKey = btn.dataset.tab;
     if (!tabKey) return;
 
@@ -108,24 +111,16 @@ document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
       activePanel.style.display = "flex";
     }
 
-    if (tabTitle && TAB_CONFIG[tabKey]) {
-      tabTitle.textContent = TAB_CONFIG[tabKey].title;
-    }
-    if (brandIcon && TAB_CONFIG[tabKey]) {
-      brandIcon.className = `fa-solid ${TAB_CONFIG[tabKey].icon}`;
-    }
+    if (tabTitle && TAB_CONFIG[tabKey]) tabTitle.textContent = TAB_CONFIG[tabKey].title;
+    if (brandIcon && TAB_CONFIG[tabKey]) brandIcon.className = `fa-solid ${TAB_CONFIG[tabKey].icon}`;
 
     if (tabKey === "today") {
       if (telemetrySlot) telemetrySlot.style.display = "block";
       if (toolbarSlot) toolbarSlot.style.display = "block";
       if (headerSyncBtn) headerSyncBtn.style.display = "inline-flex";
-      initTelemetry(telemetrySlot);
-      initSearchBar(toolbarSlot, () => renderTodayPanel());
-      if (allTodayTasks.length > 0) {
-        renderTodayPanel();
-      } else {
-        loadTodayTasks();
-      }
+      await loadFragments();
+      if (allTodayTasks.length > 0) renderTodayPanel();
+      else await loadTodayTasks();
     } else {
       if (telemetrySlot) telemetrySlot.style.display = "none";
       if (toolbarSlot) toolbarSlot.style.display = "none";
@@ -134,7 +129,6 @@ document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
   });
 });
 
-// Delegation for Today View
 if (todayPanel) {
   todayPanel.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-action='status']");
@@ -150,7 +144,7 @@ if (todayPanel) {
   });
 }
 
-// Initial Boot: Guaranteed execution order
-if (telemetrySlot) initTelemetry(telemetrySlot);
-if (toolbarSlot) initSearchBar(toolbarSlot, () => renderTodayPanel());
-loadTodayTasks();
+(async () => {
+  await loadFragments();
+  await loadTodayTasks();
+})();
