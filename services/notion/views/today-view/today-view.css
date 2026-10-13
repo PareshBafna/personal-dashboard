@@ -1,52 +1,253 @@
 /* File: services/notion/views/today-view/today-view.css */
 
+@import "./features/telemetry/telemetry.css";
+@import "./features/search-bar/search-bar.css";
+@import "./features/status-update/status-update.css";
+@import "./features/sync-data/sync-data.css";
+@import "./task-card/task-card.css";
+
+:root {
+  --c-pastdue: #f43f5e;
+  --c-today: #eab308;
+  --c-tomorrow: #6366f1;
+  --c-futuredue: #14b8a6;
+  --c-date-header: #38bdf8;
+  --c-prog: #f59e0b;
+  --c-todo: #fb7185;
+  --c-done: #10b981;
+}
+
 #tabToday {
-  width: 100% !important;
-  align-items: stretch;
+  display: none;
+  width: 100%;
+  flex-direction: column;
   gap: 12px;
+  overflow: visible;
+  height: auto;
 }
 
 #tabToday.active {
   display: flex !important;
 }
 
-#tabToday .stage1-group {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  margin-bottom: 12px;
+#tabToday details {
+  width: 100%;
+  border-radius: 10px;
+  box-sizing: border-box;
 }
 
-#tabToday .stage1-summary {
-  width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  box-sizing: border-box !important;
-  padding: 10px 14px !important;
+#tabToday summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+#tabToday summary::-webkit-details-marker { display: none; }
+
+#tabToday .chevron-icon {
+  font-size: 0.8rem;
+  color: var(--text-dim, #71717a);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: auto !important;
 }
 
-#tabToday .stage1-summary span:first-of-type {
-  flex: 1 1 auto;
-  text-align: left;
+#tabToday details[open] > summary .chevron-icon {
+  transform: rotate(180deg);
 }
 
-#tabToday .stage1-summary .chevron-icon {
-  margin-left: auto;
+.stage1-group {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 6px 4px;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+  margin-bottom: 8px;
 }
 
-#tabToday .stage2-group {
-  width: 100% !important;
-  box-sizing: border-box !important;
+.stage1-group.s1-pastdue {
+  background: rgba(244, 63, 94, 0.03);
+  border-color: rgba(244, 63, 94, 0.15);
+}
+.stage1-group.s1-pastdue .stage1-summary { color: var(--c-pastdue) !important; }
+
+.stage1-group.s1-today {
+  background: rgba(234, 179, 8, 0.03);
+  border-color: rgba(234, 179, 8, 0.15);
+}
+.stage1-group.s1-today .stage1-summary { color: var(--c-today) !important; }
+
+.stage1-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-height: 40px;
+  box-sizing: border-box;
 }
 
-#tabToday .stage2-summary {
-  width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  box-sizing: border-box !important;
+.stage1-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid currentColor;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-left: 0 !important;
+  flex-shrink: 0;
 }
 
-#tabToday .stage4-col-details {
-  width: 100% !important;
-  box-sizing: border-box !important;
+.stage1-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+}
+
+.stage2-group {
+  background: rgba(56, 189, 248, 0.03);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 10px;
+  padding: 6px 4px;
+  box-sizing: border-box;
+  margin-bottom: 6px;
+}
+
+.stage2-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-height: 40px;
+  box-sizing: border-box;
+  color: var(--c-date-header) !important;
+}
+
+.stage2-date-text {
+  color: var(--c-date-header) !important;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.stage2-badge {
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--c-date-header);
+  border: 1px solid var(--c-date-header);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-left: 0 !important;
+  flex-shrink: 0;
+}
+
+.stage2-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(56, 189, 248, 0.1);
+  box-sizing: border-box;
+}
+
+.stage4-columns,
+.stage4-columns-past-due {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 820px) {
+  .stage4-columns,
+  .stage4-columns-past-due {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+}
+
+.stage4-col-details {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.stage4-col-summary {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 10px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.col-prog {
+  color: var(--c-prog) !important;
+  border-bottom: 1.5px solid rgba(245, 158, 11, 0.4);
+}
+.col-todo {
+  color: var(--c-todo) !important;
+  border-bottom: 1.5px solid rgba(251, 113, 133, 0.4);
+}
+
+.status-badge-prog {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--c-prog);
+  border: 1px solid var(--c-prog);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-left: 0 !important;
+  flex-shrink: 0;
+}
+
+.status-badge-todo {
+  background: rgba(251, 113, 133, 0.15);
+  color: var(--c-todo);
+  border: 1px solid var(--c-todo);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-left: 0 !important;
+  flex-shrink: 0;
+}
+
+.stage4-col-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding-bottom: 16px;
 }

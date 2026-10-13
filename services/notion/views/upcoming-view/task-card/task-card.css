@@ -1,0 +1,12 @@
+/* File: services/notion/views/upcoming-view/task-card/task-card.css */
+
+/* Reuses exact Master View card styling imported via link */
+.date-highlight-badge.date-color-future {
+  background: rgba(20, 184, 166, 0.12) !important;
+  border: 1px solid rgba(20, 184, 166, 0.35) !important;
+  color: #14b8a6 !important;
+}
+.date-highlight-badge.date-color-future i,
+.date-highlight-badge.date-color-future span {
+  color: #14b8a6 !important;
+}

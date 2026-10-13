@@ -1,9 +1,0 @@
-/* File: services/notion/task-tracker/views/inbox-view/inbox-view.css */
-/* Grid and stage styling for Inbox View */
-
-.inbox-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: 12px;
-  width: 100%;
-}

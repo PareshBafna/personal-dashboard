@@ -19,14 +19,9 @@ export function initSyncButton(btnEl, onSyncTrigger) {
 export function setSyncButtonState(btnEl, isSyncing) {
   if (!btnEl) return;
   btnEl.disabled = isSyncing;
-  const icon = btnEl.querySelector("i");
-  const text = btnEl.querySelector("span");
-
-  if (icon) {
-    if (isSyncing) icon.classList.add("spin");
-    else icon.classList.remove("spin");
-  }
-  if (text) {
-    text.textContent = isSyncing ? "Syncing..." : "Sync";
+  if (isSyncing) {
+    btnEl.classList.add("spinning");
+  } else {
+    btnEl.classList.remove("spinning");
   }
 }

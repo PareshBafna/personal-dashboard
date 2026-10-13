@@ -1,43 +1,64 @@
 // File: services/notion/notion.js
 
-import { initTelemetry, updateTelemetryCounts } from "./common/features/telemetry/telemetry.js";
+import { initTelemetry, updateTelemetryCounts } from "./views/today-view/features/telemetry/telemetry.js";
 import { initSyncButton, setSyncButtonState } from "./views/today-view/features/sync-data/sync-data.js";
+import { initSearchBar, getSearchQuery } from "./views/today-view/features/search-bar/search-bar.js";
 import { fetchTodayTasks } from "./views/today-view/api/api.client.js";
 import { renderTodayView } from "./views/today-view/today-view.js";
 import { updateTaskStatus } from "./views/today-view/features/status-update/status-update.js";
 import { toLocalDateString, getNativeDueDateRaw } from "./views/today-view/task-card/task-card.js";
 
 let allTodayTasks = [];
+
 const todayPanel = document.getElementById("tabToday");
 const tabTitle = document.getElementById("tabTitle");
+const brandIcon = document.getElementById("brandIcon");
 const telemetrySlot = document.getElementById("telemetrySlot");
+const toolbarSlot = document.getElementById("toolbarSlot");
 const headerSyncBtn = document.getElementById("headerSyncBtn");
 
 const TZ = "Asia/Kolkata";
-const TAB_TITLES = {
-  today: "Today",
-  upcoming: "Upcoming",
-  all: "All Records",
-  list: "Pages"
+const TAB_CONFIG = {
+  today: { title: "Today", icon: "fa-calendar-day" },
+  upcoming: { title: "Upcoming", icon: "fa-calendar-week" },
+  all: { title: "All Records", icon: "fa-layer-group" },
+  list: { title: "Pages", icon: "fa-list-ul" }
 };
 
-function computeAndRenderMetrics(tasks) {
-  const today = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+async function loadFragments() {
+  await Promise.all([
+    initTelemetry(telemetrySlot),
+    initSearchBar(toolbarSlot, () => renderTodayPanel())
+  ]);
+}
 
-  // Only count tasks eligible for Today view (Past Due or Due Today, not completed)
-  const visibleTasks = (tasks || []).filter(t => {
-    if (t.isDone) return false;
-    const rawDue = getNativeDueDateRaw(t) || t.date || t.formulaDate || "";
+function filterTasksBySearch(tasks) {
+  const q = getSearchQuery();
+  if (!q) return tasks;
+  return tasks.filter(t => t.title && t.title.toLowerCase().includes(q));
+}
+
+function computeAndRenderTodayMetrics(tasks) {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+  const relevantTasks = (tasks || []).filter(t => {
+    const rawDue = getNativeDueDateRaw(t);
     const dOnly = toLocalDateString(rawDue);
-    if (!dOnly) return false;
-    return dOnly <= today;
+    return dOnly && dOnly <= today;
   });
 
-  const total = visibleTasks.length;
-  const inProg = visibleTasks.filter(t => (t.status || "").toLowerCase().includes("progress")).length;
-  const todo = total - inProg;
+  const total = relevantTasks.length;
+  const completed = relevantTasks.filter(t => t.isDone).length;
+  const inProg = relevantTasks.filter(t => !t.isDone && (t.status || "").toLowerCase().includes("progress")).length;
+  const todo = relevantTasks.filter(t => !t.isDone && !(t.status || "").toLowerCase().includes("progress")).length;
 
-  updateTelemetryCounts(total, todo, inProg);
+  updateTelemetryCounts(total, todo, inProg, completed);
+}
+
+function renderTodayPanel() {
+  if (!todayPanel) return;
+  const filtered = filterTasksBySearch(allTodayTasks);
+  todayPanel.innerHTML = renderTodayView(filtered);
+  computeAndRenderTodayMetrics(allTodayTasks);
 }
 
 async function loadTodayTasks() {
@@ -51,8 +72,7 @@ async function loadTodayTasks() {
   `;
   try {
     allTodayTasks = await fetchTodayTasks();
-    todayPanel.innerHTML = renderTodayView(allTodayTasks);
-    computeAndRenderMetrics(allTodayTasks);
+    renderTodayPanel();
   } catch (err) {
     console.error("Today view fetch error:", err);
     todayPanel.innerHTML = `
@@ -67,60 +87,64 @@ async function loadTodayTasks() {
   }
 }
 
-// Init Common Telemetry
-initTelemetry(telemetrySlot);
+initSyncButton(headerSyncBtn, () => {
+  const currentTab = document.querySelector(".bottom-nav .nav-item.active")?.dataset?.tab;
+  if (currentTab === "today") loadTodayTasks();
+});
 
-// Init Sync Button from feature module
-initSyncButton(headerSyncBtn, loadTodayTasks);
-
-// Bottom navigation tab switching
 document.querySelectorAll(".bottom-nav .nav-item").forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const tabKey = btn.dataset.tab;
     if (!tabKey) return;
 
     document.querySelectorAll(".bottom-nav .nav-item").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    document.querySelectorAll(".hub-tab-panel").forEach(panel => panel.classList.remove("active"));
+    document.querySelectorAll(".hub-tab-panel").forEach(panel => {
+      panel.classList.remove("active");
+      panel.style.display = "none";
+    });
+
     const activePanel = document.getElementById(`tab${tabKey.charAt(0).toUpperCase() + tabKey.slice(1)}`);
-    if (activePanel) activePanel.classList.add("active");
-
-    if (tabTitle && TAB_TITLES[tabKey]) {
-      tabTitle.textContent = TAB_TITLES[tabKey];
+    if (activePanel) {
+      activePanel.classList.add("active");
+      activePanel.style.display = "flex";
     }
 
-    if (telemetrySlot) {
-      telemetrySlot.style.display = tabKey === "list" ? "none" : "block";
-    }
-    if (headerSyncBtn) {
-      headerSyncBtn.style.display = tabKey === "list" ? "none" : "inline-flex";
-    }
+    if (tabTitle && TAB_CONFIG[tabKey]) tabTitle.textContent = TAB_CONFIG[tabKey].title;
+    if (brandIcon && TAB_CONFIG[tabKey]) brandIcon.className = `fa-solid ${TAB_CONFIG[tabKey].icon}`;
 
-    if (tabKey === "today" && allTodayTasks.length === 0) {
-      loadTodayTasks();
+    if (tabKey === "today") {
+      if (telemetrySlot) telemetrySlot.style.display = "block";
+      if (toolbarSlot) toolbarSlot.style.display = "block";
+      if (headerSyncBtn) headerSyncBtn.style.display = "inline-flex";
+      await loadFragments();
+      if (allTodayTasks.length > 0) renderTodayPanel();
+      else await loadTodayTasks();
+    } else {
+      if (telemetrySlot) telemetrySlot.style.display = "none";
+      if (toolbarSlot) toolbarSlot.style.display = "none";
+      if (headerSyncBtn) headerSyncBtn.style.display = "none";
     }
   });
 });
 
-// Status change event delegation
 if (todayPanel) {
   todayPanel.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-action='status']");
     if (!btn) return;
-    const id = btn.dataset.id;
-    const targetStatus = btn.dataset.target;
-    const task = allTodayTasks.find(t => t.id === id);
+    const task = allTodayTasks.find(t => t.id === btn.dataset.id);
     if (!task) return;
 
     setSyncButtonState(headerSyncBtn, true);
-    updateTaskStatus(task, targetStatus, () => {
-      todayPanel.innerHTML = renderTodayView(allTodayTasks);
-      computeAndRenderMetrics(allTodayTasks);
+    updateTaskStatus(task, btn.dataset.target, () => {
+      renderTodayPanel();
       setSyncButtonState(headerSyncBtn, false);
     });
   });
 }
 
-// Initial Boot
-loadTodayTasks();   
+(async () => {
+  await loadFragments();
+  await loadTodayTasks();
+})();

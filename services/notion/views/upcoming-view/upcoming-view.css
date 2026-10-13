@@ -1,0 +1,67 @@
+/* File: services/notion/views/upcoming-view/upcoming-view.css */
+
+:root {
+  --c-tomorrow: #6366f1;
+  --c-futuredue: #14b8a6;
+  --c-prog: #f59e0b;
+  --c-todo: #fb7185;
+}
+
+#tabUpcoming {
+  display: none;
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+  overflow: visible;
+  height: auto;
+}
+
+#tabUpcoming.active {
+  display: flex !important;
+}
+
+#tabUpcoming details {
+  width: 100%;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+#tabUpcoming summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+#tabUpcoming summary::-webkit-details-marker { display: none; }
+
+#tabUpcoming .chevron-icon {
+  font-size: 0.8rem;
+  color: var(--text-dim, #71717a);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: auto !important;
+}
+
+#tabUpcoming details[open] > summary .chevron-icon {
+  transform: rotate(180deg);
+}
+
+/* Stage 1 Themes */
+.stage1-group.s1-tomorrow {
+  background: rgba(99, 102, 241, 0.03);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+.stage1-group.s1-tomorrow .stage1-summary { color: var(--c-tomorrow) !important; }
+
+.stage1-group.s1-future {
+  background: rgba(20, 184, 166, 0.03);
+  border-color: rgba(20, 184, 166, 0.2);
+}
+.stage1-group.s1-future .stage1-summary { color: var(--c-futuredue) !important; }
+
+/* Keep badges next to text */
+#tabUpcoming .stage1-badge,
+#tabUpcoming .stage2-badge,
+#tabUpcoming .status-badge-prog,
+#tabUpcoming .status-badge-todo {
+  margin-left: 0 !important;
+  flex-shrink: 0;
+}

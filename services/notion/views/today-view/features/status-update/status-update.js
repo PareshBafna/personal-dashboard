@@ -6,7 +6,7 @@ export async function updateTaskStatus(task, newStatus, onDone = null) {
 
   try {
     const res = await fetch("/api/notion/update-page", {
-      method: "PATCH",
+      method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         pageId: task.id,
@@ -19,9 +19,8 @@ export async function updateTaskStatus(task, newStatus, onDone = null) {
     });
 
     if (!res.ok) {
-      // Fallback for select-type status
       await fetch("/api/notion/update-page", {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pageId: task.id,

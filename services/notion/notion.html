@@ -10,77 +10,52 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./notion.css">
-  <link rel="stylesheet" href="./common/features/telemetry/telemetry.css">
-  <link rel="stylesheet" href="./task-tracker/task-tracker.css">
   <link rel="stylesheet" href="./views/today-view/today-view.css">
+  <link rel="stylesheet" href="./views/upcoming-view/upcoming-view.css">
 </head>
 <body>
   <div class="glow-bg"></div>
 
   <div class="hub-wrapper">
-    <header class="hub-header">
+    <header class="tracker-header">
       <div class="brand">
         <div class="brand-icon">
-          <i class="fa-solid fa-calendar-day" style="font-size: 1rem; color: #ffffff;"></i>
+          <i class="fa-solid fa-calendar-day" id="brandIcon"></i>
         </div>
         <div>
           <h1 id="tabTitle">Today</h1>
         </div>
       </div>
 
-      <!-- Header Sync Pill -->
-      <button type="button" class="header-sync-btn" id="headerSyncBtn" title="Sync Database">
-        <i class="fa-solid fa-rotate"></i>
-        <span>Sync</span>
-      </button>
+      <div class="header-actions">
+        <button id="headerSyncBtn" class="action-btn secondary-btn" title="Sync live tasks">
+          <i class="fa-solid fa-rotate refresh-icon"></i>
+          <span>Sync</span>
+        </button>
+      </div>
     </header>
 
-    <!-- Shared Telemetry Slot -->
     <div id="telemetrySlot"></div>
+    <div id="toolbarSlot"></div>
 
     <main id="contentContainer" class="hub-content">
-      <!-- 1. TODAY TAB (ACTIVE BY DEFAULT) -->
-      <section id="tabToday" class="hub-tab-panel active">
-        <div class="empty-placeholder">
-          <i class="fa-solid fa-calendar-day"></i>
-          <h3>Today's Agenda</h3>
-          <p>Tasks scheduled for today will appear here.</p>
-        </div>
-      </section>
-
-      <!-- 2. UPCOMING TAB -->
-      <section id="tabUpcoming" class="hub-tab-panel">
-        <div class="empty-placeholder">
-          <i class="fa-solid fa-calendar-week"></i>
-          <h3>Upcoming Schedule</h3>
-          <p>Future events and due items will show here.</p>
-        </div>
-      </section>
-
-      <!-- 3. ALL TAB -->
-      <section id="tabAll" class="hub-tab-panel">
-        <div class="empty-placeholder">
-          <i class="fa-solid fa-layer-group"></i>
-          <h3>All Records</h3>
-          <p>Comprehensive overview of Notion database entries.</p>
-        </div>
-      </section>
-
-      <!-- 4. LIST TAB -->
+      <section id="tabToday" class="hub-tab-panel active"></section>
+      <section id="tabUpcoming" class="hub-tab-panel"></section>
+      <section id="tabAll" class="hub-tab-panel"></section>
       <section id="tabList" class="hub-tab-panel">
         <div class="pages-grid">
-          <a href="./dashboard/dashboard.html" class="page-card">
+          <a href="./pages/databases/databases.html" class="page-card">
             <div class="page-card-icon icon-dashboard">
-              <i class="fa-solid fa-chart-pie"></i>
+              <i class="fa-solid fa-database"></i>
             </div>
             <div class="page-card-info">
-              <h3>Dashboard</h3>
+              <h3>Databases</h3>
               <p>Analytics, metrics overview, and quick stats.</p>
             </div>
             <i class="fa-solid fa-chevron-right chevron-link"></i>
           </a>
 
-          <a href="./task-tracker/task-tracker.html" class="page-card">
+          <a href="./pages/task-tracker/task-tracker.html" class="page-card">
             <div class="page-card-icon icon-tracker">
               <i class="fa-solid fa-list-check"></i>
             </div>
@@ -94,7 +69,6 @@
       </section>
     </main>
 
-    <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
       <button type="button" class="nav-item active" data-tab="today">
         <i class="fa-solid fa-calendar-day"></i>
