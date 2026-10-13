@@ -11,13 +11,18 @@
   --c-done: #10b981;
 }
 
+/* Tab Panel Base */
 #tabToday {
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
+  display: none;
+  width: 100%;
+  flex-direction: column;
   gap: 12px;
-  overflow: visible !important;
-  height: auto !important;
+  overflow: visible;
+  height: auto;
+}
+
+#tabToday.active {
+  display: flex !important;
 }
 
 /* ============================================================
@@ -228,6 +233,19 @@
   background: rgba(251, 113, 133, 0.15);
   color: var(--c-todo);
   border: 1px solid var(--c-todo);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  margin-left: 0 !important;
+  flex-shrink: 0;
+}
+
+.status-badge-done {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--c-done);
+  border: 1px solid var(--c-done);
   padding: 2px 7px;
   border-radius: 5px;
   font-family: 'JetBrains Mono', monospace;

@@ -1,0 +1,9 @@
+/* File: services/notion/views/upcoming-view/features/telemetry/telemetry.css */
+
+.metric-value.metric-tomorrow {
+  color: #a5b4fc !important;
+}
+
+.metric-value.metric-future {
+  color: #5eead4 !important;
+}
