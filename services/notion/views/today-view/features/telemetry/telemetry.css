@@ -1,4 +1,4 @@
-/* File: services/notion/common/features/telemetry/telemetry.css */
+/* File: services/notion/views/today-view/features/telemetry/telemetry.css */
 
 .telemetry-bar-container {
   width: 100%;
@@ -52,11 +52,11 @@
 }
 
 .metric-value.metric-todo {
-  color: #fca5a5; /* Soft Red / Coral */
+  color: #fca5a5;
 }
 
 .metric-value.metric-prog {
-  color: #fde047; /* Yellow / Gold */
+  color: #fde047;
 }
 
 @media (max-width: 480px) {

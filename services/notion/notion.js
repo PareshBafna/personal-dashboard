@@ -1,6 +1,6 @@
 // File: services/notion/notion.js
 
-import { initTelemetry, updateTelemetryCounts } from "./common/features/telemetry/telemetry.js";
+import { initTelemetry, updateTelemetryCounts } from "./views/today-view/features/telemetry/telemetry.js";
 import { initSyncButton, setSyncButtonState } from "./views/today-view/features/sync-data/sync-data.js";
 import { fetchTodayTasks } from "./views/today-view/api/api.client.js";
 import { renderTodayView } from "./views/today-view/today-view.js";
@@ -24,7 +24,6 @@ const TAB_TITLES = {
 function computeAndRenderMetrics(tasks) {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
 
-  // Only count tasks eligible for Today view (Past Due or Due Today, not completed)
   const visibleTasks = (tasks || []).filter(t => {
     if (t.isDone) return false;
     const rawDue = getNativeDueDateRaw(t) || t.date || t.formulaDate || "";
@@ -67,7 +66,7 @@ async function loadTodayTasks() {
   }
 }
 
-// Init Common Telemetry
+// Init Telemetry from today-view feature folder
 initTelemetry(telemetrySlot);
 
 // Init Sync Button from feature module
@@ -123,4 +122,4 @@ if (todayPanel) {
 }
 
 // Initial Boot
-loadTodayTasks();   
+loadTodayTasks();

@@ -1,4 +1,4 @@
-// File: services/notion/common/features/telemetry/telemetry.js
+// File: services/notion/views/today-view/features/telemetry/telemetry.js
 
 export function initTelemetry(containerEl) {
   if (!containerEl) return;

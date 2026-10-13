@@ -2,7 +2,6 @@
 /* Main page layout and CSS bundle aggregating all modular stylesheets */
 
 @import "../common/features/toast/toast.css";
-@import "./common/features/telemetry/telemetry.css";
 @import "./common/features/filter-toolbar/filter-toolbar.css";
 @import "./common/features/task-add/task-add.css";
 @import "./views/master-view/task-card/task-card.css";
@@ -10,9 +9,11 @@
 @import "./views/master-view/features/task-delete/task-delete.css";
 @import "./views/master-view/features/task-update/task-update.css";
 @import "./views/master-view/features/custom-date-update/custom-date-update.css";
+@import "./views/master-view/features/telemetry/telemetry.css";
 @import "./views/inbox-view/task-card/task-card.css";
 @import "./views/inbox-view/inbox-view.css";
 @import "./views/inbox-view/features/due-date-fix/due-date-fix.css";
+@import "./views/inbox-view/features/telemetry/telemetry.css";
 
 :root {
   --bg-deep: #0f1011;
