@@ -1,0 +1,15 @@
+{
+  "name": "Personal Dashboard",
+  "short_name": "Dashboard",
+  "description": "Personal dashboard for Notion, Google and MEGA",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#05070b",
+  "theme_color": "#05070b",
+  "icons": [
+    { "src": "/global/icons/icon-192.png?v=3", "sizes": "192x192", "type": "image/png" },
+    { "src": "/global/icons/icon-512.png?v=3", "sizes": "512x512", "type": "image/png" },
+    { "src": "/global/icons/icon-maskable-512.png?v=3", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

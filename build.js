@@ -51,9 +51,12 @@ function copyAndObfuscate(src, dest) {
 // Copy and process services folder
 copyAndObfuscate("./services", "./dist/services");
 
+// Copy icons (home screen + share preview images)
+if (fs.existsSync("./global/icons")) copyAndObfuscate("./global/icons", "./dist/global/icons");
+
 // Copy root files if any (index.html, assets, redirects)
 for (const file of fs.readdirSync(".")) {
-  if (["index.html", "_redirects", "_headers", "favicon.ico"].includes(file)) {
+  if (["index.html", "_redirects", "_headers", "favicon.ico", "manifest.json"].includes(file)) {
     fs.copyFileSync(file, path.join(distDir, file));
   }
 }
