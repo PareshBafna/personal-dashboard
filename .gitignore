@@ -12,6 +12,17 @@ build/
 !.env.example
 .dev.vars
 
+# Credentials files (match by name anywhere in the repo)
+*.creds.js
+*credentials.js
+
+# Credentials files (explicit paths)
+auth/credentials/auth.creds.js
+functions/api/google/google.credentials.js
+functions/api/notion/credentials.js
+pages/google/google-credentials/google.credentials.js
+pages/mega/credentials/mega.creds.js
+
 # Logs
 logs/
 *.log
