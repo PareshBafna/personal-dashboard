@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.cache/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Hosting platform folders
+.wrangler/
+.netlify/
+.vercel/
+
+# Coverage and test output
+coverage/
+.nyc_output/
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tmp
+*.bak
