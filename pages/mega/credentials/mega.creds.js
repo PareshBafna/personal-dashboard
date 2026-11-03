@@ -1,1 +1,0 @@
-export const MEGA_CREDS = {};

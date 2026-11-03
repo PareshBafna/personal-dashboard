@@ -1,6 +1,6 @@
 import express from "express";
 import { Storage } from "megajs";
-import { MEGA_CREDS } from "./credentials/mega.creds.js";
+import { MEGA_CREDENTIALS } from "./credentials/credentials.js";
 
 const router = express.Router();
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -101,7 +101,7 @@ async function fetchMegaStorage(acc) {
 }
 
 router.get("/accounts", (req, res) => {
-  const list = MEGA_CREDS.accounts.map((acc) => ({
+  const list = MEGA_CREDENTIALS.accounts.map((acc) => ({
     id: acc.id,
     name: acc.name,
     email: acc.email,
@@ -116,7 +116,7 @@ router.get("/accounts", (req, res) => {
 
 router.post("/sync-one", async (req, res) => {
   const { id } = req.body;
-  const acc = MEGA_CREDS.accounts.find((a) => a.id === id);
+  const acc = MEGA_CREDENTIALS.accounts.find((a) => a.id === id);
 
   if (!acc) return res.status(404).json({ error: "Account not found" });
 
@@ -131,7 +131,7 @@ router.post("/sync-one", async (req, res) => {
 router.post("/sync-all", async (req, res) => {
   const results = [];
 
-  for (const acc of MEGA_CREDS.accounts) {
+  for (const acc of MEGA_CREDENTIALS.accounts) {
     try {
       const data = await fetchMegaStorage(acc);
       results.push({ ...data, synced: true });

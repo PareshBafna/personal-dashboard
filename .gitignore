@@ -1,1 +1,30 @@
+# Secrets
 .env
+.env.*
+!.env.example
+.dev.vars
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Cloudflare
+.wrangler/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+
+# Scratch
+check.mjs

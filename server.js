@@ -7,8 +7,8 @@ dns.setDefaultResultOrder("ipv4first");
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import googleRoutes from "./pages/google/google-common/google.service.js";
-import megaRoutes from "./pages/mega/mega.service.js";
+import googleRoutes from "./src/google/google-common/google.service.js";
+import megaRoutes from "./src/mega/mega.service.js";
 import notionRoutes from "./src/notion/pages/task-tracker/views/master-view/api/api.backend.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,8 +31,8 @@ app.use("/src", express.static(path.join(__dirname, "src")));
 // Compat: old /services/... URLs still work, remove once no file use them
 app.use("/services", express.static(path.join(__dirname, "src")));
 
-app.use("/google", express.static(path.join(__dirname, "pages", "google")));
-app.use("/mega", express.static(path.join(__dirname, "pages", "mega")));
+app.use("/google", express.static(path.join(__dirname, "src", "google")));
+app.use("/mega", express.static(path.join(__dirname, "src", "mega")));
 app.use("/notion", express.static(path.join(__dirname, "src", "notion")));
 
 // Default redirect
