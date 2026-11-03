@@ -1,0 +1,54 @@
+/* File: services/notion/views/today-view/features/status-update/status-update.css */
+.status-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 6px;
+  padding: 8px 10px;
+  min-height: 36px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 0;
+  box-sizing: border-box;
+  transition: all 0.15s;
+}
+
+.status-action-btn i {
+  font-size: 0.8rem;
+}
+
+.btn-to-prog {
+  color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.1) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.btn-to-prog:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.btn-to-todo {
+  color: #93c5fd !important;
+  background: rgba(147, 197, 253, 0.1) !important;
+  border: 1px solid rgba(147, 197, 253, 0.3) !important;
+}
+
+.btn-to-todo:hover {
+  background: rgba(147, 197, 253, 0.22) !important;
+  border-color: rgba(147, 197, 253, 0.5) !important;
+}
+
+.btn-to-done {
+  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-to-done:hover {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}

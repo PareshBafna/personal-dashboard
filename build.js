@@ -49,7 +49,7 @@ function copyAndObfuscate(src, dest) {
 }
 
 // Copy and process services folder
-copyAndObfuscate("./services", "./dist/services");
+copyAndObfuscate("./src/services", "./dist/services");
 
 // Copy icons (home screen + share preview images)
 if (fs.existsSync("./global/icons")) copyAndObfuscate("./global/icons", "./dist/global/icons");

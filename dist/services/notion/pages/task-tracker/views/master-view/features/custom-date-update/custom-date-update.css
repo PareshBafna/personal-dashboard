@@ -1,0 +1,129 @@
+/* File: services/notion/task-tracker/views/master-view/features/custom-date-update/custom-date-update.css */
+/* Styles for custom date picker modal popup in Master View */
+
+.custom-date-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: none;
+  place-items: center;
+  padding: 14px;
+}
+
+.custom-date-modal-backdrop.show {
+  display: grid;
+}
+
+.custom-date-card {
+  background: #18191c;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.custom-date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 8px;
+}
+
+.custom-date-header h4 {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.custom-date-header button {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.custom-date-header button:hover {
+  color: #fff;
+}
+
+.custom-date-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-date-body input[type="date"],
+.custom-date-body input[type="time"] {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.82rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.custom-date-time-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.custom-date-time-toggle input[type="checkbox"] {
+  accent-color: #3b82f6;
+  width: 15px;
+  height: 15px;
+}
+
+.custom-date-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.custom-date-btn-submit {
+  flex: 1;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.custom-date-btn-submit:hover {
+  background: #1d4ed8;
+}
+
+.custom-date-btn-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.custom-date-btn-cancel:hover {
+  color: #fff;
+}

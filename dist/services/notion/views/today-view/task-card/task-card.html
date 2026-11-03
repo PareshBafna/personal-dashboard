@@ -1,0 +1,36 @@
+<!-- File: services/notion/views/today-view/task-card/task-card.html -->
+<template id="today-task-card-template">
+  <div class="checklist-item" data-id="">
+    <div class="item-text-wrap">
+      <div class="task-info-section">
+        <div class="task-info-top-row">
+          <div class="item-title-with-icon">
+            <i class="fa-solid fa-circle-check task-title-icon"></i>
+            <span class="item-title"></span>
+          </div>
+        </div>
+        <div class="item-submeta">
+          <span class="date-highlight-badge">
+            <i class="fa-regular fa-calendar"></i><span class="date-text"></span>
+          </span>
+          <span class="task-priority"></span>
+        </div>
+      </div>
+
+      <div class="task-card-divider"></div>
+
+      <div class="task-actions-section">
+        <div class="item-status-actions"></div>
+        <div class="item-notion-action">
+          <a href="#" target="_blank" class="open-notion-btn">
+            <svg class="notion-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="2.5" y="2.5" width="19" height="19" rx="5" stroke-width="2.2"/>
+              <path d="M7.5 7.5V16.5M7.5 8L16.5 16.5M16.5 7.5V16.5" stroke-width="2.2"/>
+            </svg>
+            <span>Notion</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

@@ -1,0 +1,6 @@
+/* File: services/notion/task-tracker/views/master-view/features/task-update/task-update.css */
+/* Styles for Master View task update modal */
+
+#updateTaskModal .modal-card {
+  max-width: 480px;
+}

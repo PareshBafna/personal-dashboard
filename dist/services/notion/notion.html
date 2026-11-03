@@ -1,0 +1,112 @@
+<!-- File: services/notion/notion.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>Notion Hub</title>
+  <link rel="apple-touch-icon" href="/global/icons/apple-touch-icon-notion.png" />
+  <meta name="theme-color" content="#05070b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Notion" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Personal Dashboard" />
+  <meta property="og:title" content="Notion Hub" />
+  <meta property="og:image" content="https://personal-dashboard-bbw.pages.dev/global/icons/og-notion.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="1200" />
+  <meta property="og:image:alt" content="Notion icon" />
+  <meta name="twitter:card" content="summary" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./notion.css">
+  <link rel="stylesheet" href="./views/today-view/today-view.css">
+  <link rel="stylesheet" href="./views/upcoming-view/upcoming-view.css">
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <div class="hub-wrapper">
+    <header class="tracker-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-calendar-day" id="brandIcon"></i>
+        </div>
+        <div>
+          <h1 id="tabTitle">Today</h1>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="headerSyncBtn" class="action-btn secondary-btn" title="Sync live tasks">
+          <i class="fa-solid fa-rotate refresh-icon"></i>
+          <span>Sync</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="telemetrySlot"></div>
+    <div id="toolbarSlot"></div>
+
+    <main id="contentContainer" class="hub-content">
+      <section id="tabToday" class="hub-tab-panel active"></section>
+      <section id="tabUpcoming" class="hub-tab-panel"></section>
+      <section id="tabAll" class="hub-tab-panel"></section>
+      <section id="tabList" class="hub-tab-panel">
+        <div class="pages-grid">
+          <a href="./pages/databases/databases.html" class="page-card">
+            <div class="page-card-icon icon-dashboard">
+              <i class="fa-solid fa-database"></i>
+            </div>
+            <div class="page-card-info">
+              <h3>Databases</h3>
+              <p>Analytics, metrics overview, and quick stats.</p>
+            </div>
+            <i class="fa-solid fa-chevron-right chevron-link"></i>
+          </a>
+
+          <a href="./pages/task-tracker/task-tracker.html" class="page-card">
+            <div class="page-card-icon icon-tracker">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="page-card-info">
+              <h3>Task Tracker</h3>
+              <p>Master View, Inbox validation, and real-time task manager.</p>
+            </div>
+            <i class="fa-solid fa-chevron-right chevron-link"></i>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button type="button" class="nav-item active" data-tab="today">
+        <i class="fa-solid fa-calendar-day"></i>
+        <span>Today</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="upcoming">
+        <i class="fa-solid fa-calendar-week"></i>
+        <span>Upcoming</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="all">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>All</span>
+      </button>
+
+      <button type="button" class="nav-item" data-tab="list">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>List</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module" src="./notion.js"></script>
+</body>
+</html>

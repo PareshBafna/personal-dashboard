@@ -1,0 +1,44 @@
+/* File: services/notion/task-tracker/views/master-view/features/task-delete/task-delete.css */
+/* Styles for delete confirmation modal */
+
+.delete-confirm-card {
+  max-width: 380px !important;
+}
+
+.delete-confirm-body {
+  padding: 18px 14px 14px 14px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 16px !important;
+}
+
+.delete-confirm-text {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #d4d4d8;
+  margin: 0;
+}
+
+.btn-danger-delete {
+  background: rgba(244, 63, 94, 0.2) !important;
+  border: 1px solid rgba(244, 63, 94, 0.5) !important;
+  color: #fda4af !important;
+  font-weight: 700 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-danger-delete:hover {
+  background: rgba(244, 63, 94, 0.35) !important;
+  border-color: rgba(244, 63, 94, 0.7) !important;
+  color: #ffffff !important;
+}
+
+.btn-danger-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

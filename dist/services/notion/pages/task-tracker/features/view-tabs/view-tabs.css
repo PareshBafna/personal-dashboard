@@ -1,0 +1,33 @@
+/* File: services/notion/pages/task-tracker/features/view-tabs/view-tabs.css */
+
+.view-switch-pills {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.view-pill-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-pill-btn:hover {
+  color: #fff;
+}
+
+.view-pill-btn.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}

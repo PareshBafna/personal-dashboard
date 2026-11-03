@@ -3,7 +3,7 @@
 // Relative path to Notion credentials points to root functions directory.
 
 import express from "express";
-import { NOTION_CONFIG } from "../../../../../../functions/api/notion/credentials.js";
+import { NOTION_CONFIG } from "../../../../../../../../functions/api/notion/credentials.js";
 
 const router = express.Router();
 
