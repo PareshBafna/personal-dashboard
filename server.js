@@ -9,7 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import googleRoutes from "./pages/google/google-common/google.service.js";
 import megaRoutes from "./pages/mega/mega.service.js";
-import notionRoutes from "./src/services/notion/pages/task-tracker/views/master-view/api/api.backend.js";
+import notionRoutes from "./src/notion/pages/task-tracker/views/master-view/api/api.backend.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,15 +26,18 @@ app.use("/api/notion", notionRoutes);
 app.use("/auth", express.static(path.join(__dirname, "auth")));
 app.use("/shared", express.static(path.join(__dirname, "shared")));
 app.use("/pages", express.static(path.join(__dirname, "pages")));
-app.use("/services", express.static(path.join(__dirname, "src", "services")));
+app.use("/src", express.static(path.join(__dirname, "src")));
+
+// Compat: old /services/... URLs still work, remove once no file use them
+app.use("/services", express.static(path.join(__dirname, "src")));
 
 app.use("/google", express.static(path.join(__dirname, "pages", "google")));
 app.use("/mega", express.static(path.join(__dirname, "pages", "mega")));
-app.use("/notion", express.static(path.join(__dirname, "src", "services", "notion")));
+app.use("/notion", express.static(path.join(__dirname, "src", "notion")));
 
 // Default redirect
 app.get("/", (req, res) => {
-  res.redirect("/services/notion/pages/task-tracker/task-tracker.html");
+  res.redirect("/notion/pages/task-tracker/task-tracker.html");
 });
 
 const PORT = 3000;
