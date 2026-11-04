@@ -28,7 +28,7 @@ app.use("/shared", express.static(path.join(__dirname, "shared")));
 app.use("/pages", express.static(path.join(__dirname, "pages")));
 app.use("/src", express.static(path.join(__dirname, "src")));
 
-// Compat: old /services/... URLs still work, remove once no file use them
+// Compat: old /services/.. URLs still work, remove once no file use them
 app.use("/services", express.static(path.join(__dirname, "src")));
 
 app.use("/google", express.static(path.join(__dirname, "src", "google")));
