@@ -47,7 +47,14 @@ function buildFolderNode(node) {
 }
 
 async function fetchMegaStorage(acc) {
-  if (!acc.email || !acc.password) throw new Error("Credentials not configured");
+  if (!acc.email || !acc.password) {
+    const missing = [!acc.email && "email", !acc.password && "password"]
+      .filter(Boolean)
+      .join(", ");
+    throw new Error(
+      `Credentials not configured (missing: ${missing}; keys: ${Object.keys(acc).join(",")})`
+    );
+  }
 
   const storage = await new Storage({
     email: acc.email,
